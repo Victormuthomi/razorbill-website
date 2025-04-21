@@ -1,7 +1,23 @@
-export default function App() {
-  return (
-    <div className="flex justify-center items-center h-screen bg-blue-500 text-white">
-      <h1 className="text-5xl font-bold">⚽ Welcome to Razorbill!</h1>
-    </div>
-  );
-}
+// src/App.jsx
+import {
+  Route,
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+} from "react-router-dom";
+import HomePage from "./pages/Homepage";
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route index element={<HomePage />} />
+      {/* Add more routes here later */}
+    </>,
+  ),
+);
+
+const App = () => {
+  return <RouterProvider router={router} />;
+};
+
+export default App;
