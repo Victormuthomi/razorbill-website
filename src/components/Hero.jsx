@@ -1,3 +1,5 @@
+import pen from "../assets/pen.png";
+
 export default function Hero({ menuOpen }) {
   return (
     <section
@@ -14,9 +16,18 @@ export default function Hero({ menuOpen }) {
           Catch your favorite teams live with the smoothest football streams on
           the planet.
         </p>
-        <button className="bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200">
+        <a
+          href="/matches" // Replace with the correct path to your Matches page
+          className="bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
+        >
           Get Started
-        </button>
+        </a>
+
+        <img
+          src={pen} // Use the imported image
+          alt="pen" // Description for accessibility
+          className="mt-6 w-22 md:w-40 mx-auto" // Optional styling to ensure responsiveness
+        />
       </div>
     </section>
   );
