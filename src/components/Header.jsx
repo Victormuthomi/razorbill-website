@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom"; // Import Link from React Router
+import logo from "../assets/logo.png"; // Import the logo
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -9,7 +10,7 @@ export default function Header() {
       <div className="flex items-center">
         <Link to="/" className="flex items-center">
           <img
-            src="/logo.png"
+            src={logo} // Use the imported logo here
             alt="Razorbill Logo"
             className="h-10 w-auto mr-2"
           />
