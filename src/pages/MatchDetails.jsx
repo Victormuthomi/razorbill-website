@@ -91,7 +91,7 @@ const MatchDetails = () => {
         Match: {teamA} vs {teamB}
       </h2>
 
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8">
+      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-yellow-400 mb-8">
         Available Streams
       </h2>
 
@@ -100,7 +100,7 @@ const MatchDetails = () => {
           {streams.map((stream, index) => (
             <div
               key={index}
-              className="bg-black/60 p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:border-white hover:border"
+              className="bg-black/60 p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-yellow-400 hover:border-yellow-400 md:border-transparent md:hover:border-yellow-400"
             >
               <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
                 <div className="text-white">

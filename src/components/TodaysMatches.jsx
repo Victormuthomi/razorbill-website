@@ -98,7 +98,7 @@ const TodayMatches = () => {
               {matches.map((match) => (
                 <div
                   key={match.id}
-                  className="bg-black/60 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-white hover:border"
+                  className="bg-black/60 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-yellow-400 hover:border"
                 >
                   <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
                     <div className="flex flex-col items-center text-center">
