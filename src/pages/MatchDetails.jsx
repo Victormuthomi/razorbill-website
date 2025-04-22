@@ -5,6 +5,8 @@ const MatchDetails = () => {
   const { id } = useParams();
   const [matchDetails, setMatchDetails] = useState(null);
   const [streams, setStreams] = useState([]);
+  const [teamABadge, setTeamABadge] = useState(null);
+  const [teamBBadge, setTeamBBadge] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -43,6 +45,13 @@ const MatchDetails = () => {
         }
 
         setMatchDetails(match);
+
+        // 🔑 Use the same API structure for fetching team badges
+        const homeBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.home?.badge}.webp`;
+        const awayBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.away?.badge}.webp`;
+
+        setTeamABadge(homeBadgeUrl);
+        setTeamBBadge(awayBadgeUrl);
 
         if (match.sources && match.sources.length > 0) {
           const streamPromises = match.sources.map(async (src) => {
@@ -87,9 +96,37 @@ const MatchDetails = () => {
 
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8">
-        Match: {teamA} vs {teamB}
-      </h2>
+      {/* Removed Match Title */}
+      <div className="flex justify-center gap-8 mb-8">
+        {/* Team A */}
+        <div className="flex items-center gap-2">
+          {teamABadge && (
+            <img
+              src={teamABadge}
+              alt={`${teamA} Badge`}
+              className="h-12 w-auto"
+            />
+          )}
+          <h3 className="text-white">{teamA}</h3>
+        </div>
+
+        {/* VS Text */}
+        <div className="flex items-center justify-center text-white text-2xl">
+          VS
+        </div>
+
+        {/* Team B */}
+        <div className="flex items-center gap-2">
+          {teamBBadge && (
+            <img
+              src={teamBBadge}
+              alt={`${teamB} Badge`}
+              className="h-12 w-auto"
+            />
+          )}
+          <h3 className="text-white">{teamB}</h3>
+        </div>
+      </div>
 
       <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-yellow-400 mb-8">
         Available Streams
