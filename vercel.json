@@ -16,8 +16,5 @@
       "dest": "/index.html"
     }
   ],
-  "analytics": {
-    "enabled": true
-  }
 }
 
