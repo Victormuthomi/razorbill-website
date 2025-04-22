@@ -68,16 +68,28 @@ const TodayMatches = () => {
   if (error)
     return <div className="text-red-500 text-center py-10">Error: {error}</div>;
 
+  // Custom sorting function: Football first, then others alphabetically
+  const sortedEntries = Object.entries(matchesBySport).sort(([aId], [bId]) => {
+    const aName = sportsMap[aId]?.toLowerCase() || "";
+    const bName = sportsMap[bId]?.toLowerCase() || "";
+
+    // Prioritize "Football" at the top, then others in alphabetical order
+    if (aName === "football") return -1;
+    if (bName === "football") return 1;
+
+    return aName.localeCompare(bName);
+  });
+
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
       <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8">
         Popular Matches Today
       </h2>
 
-      {Object.keys(matchesBySport).length === 0 ? (
+      {sortedEntries.length === 0 ? (
         <p className="text-center text-white">No popular matches today.</p>
       ) : (
-        Object.entries(matchesBySport).map(([sportId, matches]) => (
+        sortedEntries.map(([sportId, matches]) => (
           <div key={sportId} className="mb-10">
             <h3 className="text-xl sm:text-2xl text-white mb-4 font-semibold">
               {sportsMap[sportId] || "Other"}
@@ -120,7 +132,7 @@ const TodayMatches = () => {
                     </p>
                     {match.sources && match.sources.length > 0 ? (
                       <Link
-                        to={`/matches/${match.id}`}
+                        to={`/matches/${match.id}`} // Update to point to local match details page
                         className="mt-4 inline-block bg-white text-black px-4 py-2 rounded-full text-sm sm:text-base hover:bg-gray-200 transition duration-200"
                       >
                         Watch Now
