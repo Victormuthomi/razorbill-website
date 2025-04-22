@@ -1,50 +1,36 @@
 import { useState } from "react";
+import { Link } from "react-router-dom"; // Import Link from React Router
 
 export default function Header() {
-  // State to toggle the menu visibility
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="flex items-center justify-between p-4 bg-black/60 text-white shadow-lg">
+    <header className="flex items-center justify-between p-4 bg-black/60 text-white shadow-lg relative">
       <div className="flex items-center">
-        <a href="/" className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img
             src="/logo.png"
             alt="Razorbill Logo"
             className="h-10 w-auto mr-2"
-          />{" "}
-          {/* Logo image */}
-          <h1 className="text-2xl font-bold tracking-wide">Razorbill</h1>{" "}
-          {/* Logo text */}
-        </a>
+          />
+          <h1 className="text-2xl font-bold tracking-wide">Razorbill</h1>
+        </Link>
       </div>
 
       {/* Desktop Menu */}
       <nav className="space-x-6 hidden md:flex">
-        <a
-          href="https://example.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:underline"
-        >
+        <Link to="/" className="hover:underline">
           Home
-        </a>
-        <a
-          href="https://example.com/matches"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:underline"
-        >
+        </Link>
+        <Link to="/matches" className="hover:underline">
           Matches
-        </a>
-        <a
-          href="https://example.com/about"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:underline"
-        >
+        </Link>
+        <Link to="/about" className="hover:underline">
           About
-        </a>
+        </Link>
+        <Link to="/contact" className="hover:underline">
+          Contact
+        </Link>
       </nav>
 
       {/* Mobile Hamburger Menu */}
@@ -56,32 +42,36 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="absolute top-16 right-0 w-full bg-black/80 text-white p-4 md:hidden">
-          <nav className="flex flex-row items-center justify-center space-x-6">
-            <a
-              href="https://example.com"
-              target="_blank"
-              rel="noopener noreferrer"
+        <div className="absolute top-16 right-0 w-full bg-black/80 text-white p-4 md:hidden z-50">
+          <nav className="flex flex-col space-y-4 items-center">
+            <Link
+              to="/"
               className="hover:underline"
+              onClick={() => setMenuOpen(false)}
             >
               Home
-            </a>
-            <a
-              href="https://example.com/matches"
-              target="_blank"
-              rel="noopener noreferrer"
+            </Link>
+            <Link
+              to="/matches"
               className="hover:underline"
+              onClick={() => setMenuOpen(false)}
             >
               Matches
-            </a>
-            <a
-              href="https://example.com/about"
-              target="_blank"
-              rel="noopener noreferrer"
+            </Link>
+            <Link
+              to="/about"
               className="hover:underline"
+              onClick={() => setMenuOpen(false)}
             >
               About
-            </a>
+            </Link>
+            <Link
+              to="/contact"
+              className="hover:underline"
+              onClick={() => setMenuOpen(false)}
+            >
+              Contact
+            </Link>
           </nav>
         </div>
       )}

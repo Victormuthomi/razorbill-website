@@ -10,10 +10,10 @@ export default function Hero({ menuOpen }) {
     >
       <div className="bg-black/50 p-6 rounded-lg max-w-4xl w-full">
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight">
-          Watch Live Football Anywhere
+          Watch Live Sports Anywhere
         </h2>
         <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6">
-          Catch your favorite teams live with the smoothest football streams on
+          Catch your favorite teams live with the smoothest sports streams on
           the planet.
         </p>
         <a

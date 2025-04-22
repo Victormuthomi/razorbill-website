@@ -99,7 +99,7 @@ const LiveMatches = () => {
 
                 {match.sources && match.sources.length > 0 ? (
                   <Link
-                    to={`/watch/${match.id}`}
+                    to={`/matches/${match.id}`}
                     className="inline-block bg-white text-black px-5 py-2 rounded-full text-sm sm:text-base hover:bg-gray-200 transition duration-200"
                   >
                     Watch Now
