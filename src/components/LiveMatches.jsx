@@ -51,7 +51,7 @@ const LiveMatches = () => {
 
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8">
+      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-yellow-400 mb-8">
         Live Popular Matches
       </h2>
 
@@ -62,7 +62,7 @@ const LiveMatches = () => {
           {matches.map((match) => (
             <div
               key={match.id}
-              className="bg-black/60 p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:border-white hover:border"
+              className="bg-black/60 p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:border-yellow-400 hover:border"
             >
               <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
                 {/* Home Team */}

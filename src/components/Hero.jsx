@@ -12,22 +12,24 @@ export default function Hero({ menuOpen }) {
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight">
           Watch Live Sports Anywhere
         </h2>
-        <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6">
+        <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
           Catch your favorite teams live with the smoothest sports streams on
           the planet.
         </p>
-        <a
-          href="/matches" // Replace with the correct path to your Matches page
-          className="bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
-        >
-          Get Started
-        </a>
 
         <img
           src={pen} // Use the imported image
           alt="pen" // Description for accessibility
-          className="mt-6 w-22 md:w-40 mx-auto" // Optional styling to ensure responsiveness
+          className="mt-6 w-36 md:w-52 mx-auto" // Optional styling to ensure responsiveness
         />
+        <div className="mt-16 md:mt-28">
+          <a
+            href="/matches" // Replace with the correct path to your Matches page
+            className="bg-white text-black px-8 py-4  rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
+          >
+            Get Started
+          </a>
+        </div>
       </div>
     </section>
   );

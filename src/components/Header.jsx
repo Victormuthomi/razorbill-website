@@ -5,7 +5,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="flex items-center justify-between p-4 bg-black/60 text-white shadow-lg relative">
+    <header className="flex items-center justify-between p-4 ml-8 bg-black/60 text-white shadow-lg relative">
       <div className="flex items-center">
         <Link to="/" className="flex items-center">
           <img
@@ -18,7 +18,7 @@ export default function Header() {
       </div>
 
       {/* Desktop Menu */}
-      <nav className="space-x-6 hidden md:flex">
+      <nav className="space-x-6 hidden md:flex mr-8">
         <Link to="/" className="hover:underline">
           Home
         </Link>
@@ -28,9 +28,9 @@ export default function Header() {
         <Link to="/about" className="hover:underline">
           About
         </Link>
-        <Link to="/contact" className="hover:underline">
+        {/* <Link to="/contact" className="hover:underline">
           Contact
-        </Link>
+        </Link> */}
       </nav>
 
       {/* Mobile Hamburger Menu */}
