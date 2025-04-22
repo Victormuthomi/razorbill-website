@@ -20,7 +20,7 @@ export default function Hero({ menuOpen }) {
         <img
           src={pen} // Use the imported image
           alt="pen" // Description for accessibility
-          className="mt-6 w-36 md:w-52 mx-auto" // Optional styling to ensure responsiveness
+          className="mt-6 w-24 md:w-52 mx-auto" // Optional styling to ensure responsiveness
         />
         <div className="mt-16 md:mt-28">
           <a
