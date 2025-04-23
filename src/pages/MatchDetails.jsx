@@ -159,7 +159,7 @@ const MatchDetails = () => {
       {showVideo && (
         <div className="aspect-w-16 aspect-h-9 mb-10 rounded-xl overflow-hidden border border-white">
           <iframe
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+            src="https://youtu.be/ijvlRpCOgfU?si=T0rduRPh-E8dHDbB"
             allow="fullscreen"
             title="uBlock Help Video"
             className="w-full h-full"
