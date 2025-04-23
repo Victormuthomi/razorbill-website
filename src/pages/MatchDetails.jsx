@@ -128,7 +128,7 @@ const MatchDetails = () => {
 
       {/* Live Match Player */}
       {selectedStreamUrl && (
-        <div className="aspect-w-16 aspect-h-9 mb-4 rounded-xl overflow-hidden border border-white">
+        <div className="aspect-w-10 aspect-h-10 mb-4 rounded-xl overflow-hidden border border-white">
           <iframe
             src={selectedStreamUrl}
             allow="fullscreen"
@@ -159,7 +159,7 @@ const MatchDetails = () => {
       {showVideo && (
         <div className="aspect-w-16 aspect-h-9 mb-10 rounded-xl overflow-hidden border border-white">
           <iframe
-            src="https://youtu.be/ijvlRpCOgfU?si=T0rduRPh-E8dHDbB"
+            src="https://www.youtube.com/embed/ijvlRpCOgfU?si=xlLaCcoUKavKLKSd"
             allow="fullscreen"
             title="uBlock Help Video"
             className="w-full h-full"
