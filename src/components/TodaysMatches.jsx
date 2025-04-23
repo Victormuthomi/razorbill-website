@@ -155,7 +155,8 @@ const TodayMatches = () => {
                   {/* Local Toast on Card */}
                   {activeToastMatchId === match.id && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded shadow z-50 text-sm">
-                      ✅ Notification set you will be notified!
+                      ✅ Notification set you will be notified 10 minutes before
+                      the game!
                     </div>
                   )}
 
