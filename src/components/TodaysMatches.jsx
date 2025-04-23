@@ -6,6 +6,11 @@ const TodayMatches = () => {
   const [sportsMap, setSportsMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [notified, setNotified] = useState(
+    () => JSON.parse(localStorage.getItem("notifiedMatches")) || [],
+  );
+  const [activeToastMatchId, setActiveToastMatchId] = useState(null);
 
   useEffect(() => {
     const fetchSportsAndMatches = async () => {
@@ -59,6 +64,34 @@ const TodayMatches = () => {
     fetchSportsAndMatches();
   }, []);
 
+  const handleNotify = (matchId, matchTime) => {
+    const updated = [...notified, matchId];
+    setNotified(updated);
+    localStorage.setItem("notifiedMatches", JSON.stringify(updated));
+
+    setActiveToastMatchId(matchId);
+
+    setTimeout(() => {
+      setActiveToastMatchId(null);
+    }, 5000);
+
+    const matchDate = new Date(matchTime);
+    const notifyTime = matchDate.getTime() - 10 * 60 * 1000;
+
+    const now = new Date().getTime();
+    const timeout = notifyTime - now;
+
+    setTimeout(
+      () => {
+        new Audio("/notify.mp3").play();
+        alert("📢 Match starting soon!");
+      },
+      timeout > 0 ? timeout : 1000,
+    );
+  };
+
+  const isMatchNotified = (matchId) => notified.includes(matchId);
+
   if (loading)
     return (
       <div className="text-white text-center py-10">
@@ -68,23 +101,42 @@ const TodayMatches = () => {
   if (error)
     return <div className="text-red-500 text-center py-10">Error: {error}</div>;
 
-  // Custom sorting function: Football first, then others alphabetically
-  const sortedEntries = Object.entries(matchesBySport).sort(([aId], [bId]) => {
-    const aName = sportsMap[aId]?.toLowerCase() || "";
-    const bName = sportsMap[bId]?.toLowerCase() || "";
+  const filteredMatchesBySport = {};
+  for (const [sportId, matches] of Object.entries(matchesBySport)) {
+    const filtered = matches.filter((match) => {
+      const home = match.teams?.home?.name?.toLowerCase() || "";
+      const away = match.teams?.away?.name?.toLowerCase() || "";
+      return home.includes(searchTerm) || away.includes(searchTerm);
+    });
+    if (filtered.length > 0) {
+      filteredMatchesBySport[sportId] = filtered;
+    }
+  }
 
-    // Prioritize "Football" at the top, then others in alphabetical order
-    if (aName === "football") return -1;
-    if (bName === "football") return 1;
-
-    return aName.localeCompare(bName);
-  });
+  const sortedEntries = Object.entries(filteredMatchesBySport).sort(
+    ([aId], [bId]) => {
+      const aName = sportsMap[aId]?.toLowerCase() || "";
+      const bName = sportsMap[bId]?.toLowerCase() || "";
+      if (aName === "football") return -1;
+      if (bName === "football") return 1;
+      return aName.localeCompare(bName);
+    },
+  );
 
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8">
-        Popular Matches Today
-      </h2>
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white">
+          Popular Matches Today
+        </h2>
+        <input
+          type="text"
+          placeholder="Search teams..."
+          className="border border-white bg-transparent text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+        />
+      </div>
 
       {sortedEntries.length === 0 ? (
         <p className="text-center text-white">No popular matches today.</p>
@@ -98,8 +150,15 @@ const TodayMatches = () => {
               {matches.map((match) => (
                 <div
                   key={match.id}
-                  className="bg-black/60 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-yellow-400 hover:border"
+                  className="relative bg-black/60 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-yellow-400 hover:border"
                 >
+                  {/* Local Toast on Card */}
+                  {activeToastMatchId === match.id && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded shadow z-50 text-sm">
+                      ✅ Notification set you will be notified!
+                    </div>
+                  )}
+
                   <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
                     <div className="flex flex-col items-center text-center">
                       <img
@@ -131,12 +190,27 @@ const TodayMatches = () => {
                       {new Date(match.date).toLocaleString()}
                     </p>
                     {match.sources && match.sources.length > 0 ? (
-                      <Link
-                        to={`/matches/${match.id}`} // Update to point to local match details page
-                        className="mt-4 inline-block bg-white text-black px-4 py-2 rounded-full text-sm sm:text-base hover:bg-gray-200 transition duration-200"
-                      >
-                        Watch Now
-                      </Link>
+                      <div className="flex justify-center items-center mt-4 space-x-3">
+                        <Link
+                          to={`/matches/${match.id}`}
+                          className="bg-white text-black px-4 py-2 rounded-full text-sm sm:text-base hover:bg-gray-200 transition duration-200"
+                        >
+                          Watch Now
+                        </Link>
+                        <button
+                          onClick={() => handleNotify(match.id, match.date)}
+                          disabled={isMatchNotified(match.id)}
+                          className={`${
+                            isMatchNotified(match.id)
+                              ? "bg-green-500 text-white cursor-default"
+                              : "bg-yellow-400 text-black hover:bg-yellow-500"
+                          } px-4 py-2 rounded-full text-sm sm:text-base transition duration-200`}
+                        >
+                          {isMatchNotified(match.id)
+                            ? "✅ Notified"
+                            : "🔔 Notify Me"}
+                        </button>
+                      </div>
                     ) : (
                       <p className="mt-2 text-white text-sm">
                         No live stream available.
