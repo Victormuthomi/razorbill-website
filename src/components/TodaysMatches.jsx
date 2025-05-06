@@ -126,14 +126,14 @@ const TodayMatches = () => {
 
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white">
           Popular Matches Today
         </h2>
         <input
           type="text"
           placeholder="Search teams..."
-          className="border border-white bg-transparent text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="w-full sm:w-auto border border-white bg-transparent text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
         />
