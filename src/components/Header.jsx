@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom"; // Import Link from React Router
-import logo from "../assets/logo.png"; // Import the logo
+import { Link } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -9,11 +9,7 @@ export default function Header() {
     <header className="flex items-center justify-between p-4 ml-8 bg-black/60 text-white shadow-lg relative">
       <div className="flex items-center">
         <Link to="/" className="flex items-center">
-          <img
-            src={logo} // Use the imported logo here
-            alt="Razorbill Logo"
-            className="h-10 w-auto mr-2"
-          />
+          <img src={logo} alt="Razorbill Logo" className="h-10 w-auto mr-2" />
           <h1 className="text-2xl font-bold tracking-wide">Razorbill</h1>
         </Link>
       </div>
@@ -26,12 +22,12 @@ export default function Header() {
         <Link to="/matches" className="hover:underline">
           Matches
         </Link>
+        <Link to="/results" className="hover:underline">
+          Results
+        </Link>
         <Link to="/about" className="hover:underline">
           About
         </Link>
-        {/* <Link to="/contact" className="hover:underline">
-          Contact
-        </Link> */}
       </nav>
 
       {/* Mobile Hamburger Menu */}
@@ -58,6 +54,13 @@ export default function Header() {
               onClick={() => setMenuOpen(false)}
             >
               Matches
+            </Link>
+            <Link
+              to="/results"
+              className="hover:underline"
+              onClick={() => setMenuOpen(false)}
+            >
+              Results
             </Link>
             <Link
               to="/about"
