@@ -22,7 +22,7 @@ export default function Hero({ menuOpen }) {
           alt="pen" // Description for accessibility
           className="mt-20 w-24 md:w-52 mx-auto animate-bounce duration-5" // Optional styling to ensure responsiveness
         />
-        <div className="mt-48 md:mt-28">
+        <div className="mt-32 md:mt-16">
           <a
             href="/matches" // Replace with the correct path to your Matches page
             className="bg-white text-black px-8 py-4  rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
