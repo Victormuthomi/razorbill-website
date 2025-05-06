@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import notifySound from "../assets/notify.mp3"; // adjust path as needed
 
 const TodayMatches = () => {
   const [matchesBySport, setMatchesBySport] = useState({});
@@ -83,7 +84,7 @@ const TodayMatches = () => {
 
     setTimeout(
       () => {
-        new Audio("/notify.mp3").play();
+        new Audio(notifySound).play();
         alert("📢 Match starting soon!");
       },
       timeout > 0 ? timeout : 1000,
