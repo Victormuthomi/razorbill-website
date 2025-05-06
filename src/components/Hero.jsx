@@ -9,7 +9,7 @@ export default function Hero({ menuOpen }) {
       style={{ backgroundImage: "url('/assets/hero-bg.jpg')" }}
     >
       <div className="bg-black/50 p-6 rounded-lg max-w-4xl w-full">
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight animate-pulse">
           Watch Live Sports Anywhere
         </h2>
         <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
@@ -20,7 +20,7 @@ export default function Hero({ menuOpen }) {
         <img
           src={pen} // Use the imported image
           alt="pen" // Description for accessibility
-          className="mt-6 w-24 md:w-52 mx-auto" // Optional styling to ensure responsiveness
+          className="mt-20 w-24 md:w-52 mx-auto animate-bounce duration-5" // Optional styling to ensure responsiveness
         />
         <div className="mt-16 md:mt-28">
           <a
