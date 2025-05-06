@@ -20,9 +20,9 @@ export default function Hero({ menuOpen }) {
         <img
           src={pen} // Use the imported image
           alt="pen" // Description for accessibility
-          className="mt-20 w-24 md:w-52 mx-auto animate-bounce duration-5" // Optional styling to ensure responsiveness
+          className="mt-20 w-24 md:w-52 mx-auto animate-bounce duration-1" // Optional styling to ensure responsiveness
         />
-        <div className="mt-32 md:mt-16">
+        <div className="mt-16 md:mt-28">
           <a
             href="/matches" // Replace with the correct path to your Matches page
             className="bg-white text-black px-8 py-4  rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
