@@ -6,6 +6,8 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
+import { Analytics } from "@vercel/analytics/react";
+
 import Layout from "./components/Layout"; // ← Import your Layout
 import HomePage from "./pages/Homepage";
 import Matches from "./pages/Matches";
@@ -20,6 +22,7 @@ const router = createBrowserRouter(
       <Route path="/matches/:id" element={<MatchDetails />} />
       <Route path="*" element={<NotFound />} /> {/* Catch-all route */}
     </Route>,
+    <Analytics />,
   ),
 );
 

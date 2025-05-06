@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import favicon from "./assets/logo.png"; // Import the favicon from src/assets
-import { Analytics } from "@vercel/analytics/react";
 
 // Dynamically add the favicon to the head
 const link = document.createElement("link");
