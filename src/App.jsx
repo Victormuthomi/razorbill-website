@@ -8,11 +8,11 @@ import {
 
 import { Analytics } from "@vercel/analytics/react";
 
-import Layout from "./components/Layout"; // ← Import your Layout
+import Layout from "./components/Layout";
 import HomePage from "./pages/Homepage";
 import Matches from "./pages/Matches";
 import MatchDetails from "./pages/MatchDetails";
-import NotFound from "./pages/NotFound"; // Import the new 404 pag
+import NotFound from "./pages/NotFound";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -20,14 +20,18 @@ const router = createBrowserRouter(
       <Route index element={<HomePage />} />
       <Route path="/matches" element={<Matches />} />
       <Route path="/matches/:id" element={<MatchDetails />} />
-      <Route path="*" element={<NotFound />} /> {/* Catch-all route */}
+      <Route path="*" element={<NotFound />} />
     </Route>,
-    <Analytics />,
   ),
 );
 
 const App = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <div>
+      <RouterProvider router={router} />
+      <Analytics />
+    </div>
+  );
 };
 
 export default App;
