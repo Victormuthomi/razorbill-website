@@ -25,8 +25,8 @@ export default function Header() {
         <Link to="/results" className="hover:underline">
           Results
         </Link>
-        <Link to="/about" className="hover:underline">
-          About
+        <Link to="/movies" className="hover:underline">
+          Movies
         </Link>
       </nav>
 
@@ -63,18 +63,11 @@ export default function Header() {
               Results
             </Link>
             <Link
-              to="/about"
+              to="/movies"
               className="hover:underline"
               onClick={() => setMenuOpen(false)}
             >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className="hover:underline"
-              onClick={() => setMenuOpen(false)}
-            >
-              Contact
+              Movies
             </Link>
           </nav>
         </div>

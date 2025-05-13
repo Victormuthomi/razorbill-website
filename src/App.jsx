@@ -14,6 +14,7 @@ import Matches from "./pages/Matches";
 import MatchDetails from "./pages/MatchDetails";
 import NotFound from "./pages/NotFound";
 import ResultsPage from "./pages/ResultsPage";
+import Movies from "./pages/Movies";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -22,6 +23,7 @@ const router = createBrowserRouter(
       <Route path="/matches" element={<Matches />} />
       <Route path="/matches/:id" element={<MatchDetails />} />
       <Route path="/results" element={<ResultsPage />} />
+      <Route path="/movies" element={<Movies />} />
       <Route path="*" element={<NotFound />} />
     </Route>,
   ),

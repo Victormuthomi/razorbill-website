@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 
 const MatchDetails = () => {
@@ -11,6 +11,9 @@ const MatchDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showVideo, setShowVideo] = useState(false);
+
+  const iframeRef = useRef(null); // Ref for the iframe to avoid unnecessary re-renders
+  const preloadRef = useRef(null); // Hidden iframe for preloading
 
   const getTeamsFromId = (matchId) => {
     const parts = matchId.split("-vs-");
@@ -28,63 +31,78 @@ const MatchDetails = () => {
     return { teamA: "Team A", teamB: "Team B" };
   };
 
-  useEffect(() => {
-    const fetchMatchDetails = async () => {
-      try {
-        const matchRes = await fetch(
-          "https://streamed.su/api/matches/all/popular",
-        );
-        if (!matchRes.ok)
-          throw new Error(`Failed to fetch: ${matchRes.statusText}`);
-        const allMatches = await matchRes.json();
+  const fetchMatchDetails = useCallback(async () => {
+    try {
+      const matchRes = await fetch(
+        "https://streamed.su/api/matches/all/popular",
+      );
+      if (!matchRes.ok)
+        throw new Error(`Failed to fetch: ${matchRes.statusText}`);
+      const allMatches = await matchRes.json();
 
-        const match = allMatches.find((match) => match.id === id);
-        if (!match) {
-          setError("Match not found.");
-          setLoading(false);
-          return;
-        }
-
-        setMatchDetails(match);
-
-        const homeBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.home?.badge}.webp`;
-        const awayBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.away?.badge}.webp`;
-
-        setTeamABadge(homeBadgeUrl);
-        setTeamBBadge(awayBadgeUrl);
-
-        if (match.sources && match.sources.length > 0) {
-          const streamPromises = match.sources.map(async (src) => {
-            try {
-              const res = await fetch(
-                `https://streamed.su/api/stream/${src.source}/${src.id}`,
-              );
-              if (!res.ok) throw new Error(`Stream fetch failed`);
-              return await res.json();
-            } catch (err) {
-              console.error(`Error fetching stream from ${src.source}:`, err);
-              return null;
-            }
-          });
-
-          const results = await Promise.all(streamPromises);
-          const validStreams = results.filter(Boolean).flat();
-          setStreams(validStreams);
-          if (validStreams.length > 0) {
-            setSelectedStreamUrl(validStreams[0].embedUrl);
-          }
-        } else {
-          setError("No sources found in match data.");
-        }
-      } catch (err) {
-        setError("Error fetching match details or streams.");
-      } finally {
+      const match = allMatches.find((match) => match.id === id);
+      if (!match) {
+        setError("Match not found.");
         setLoading(false);
+        return;
       }
-    };
 
-    fetchMatchDetails();
+      setMatchDetails(match);
+
+      const homeBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.home?.badge}.webp`;
+      const awayBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.away?.badge}.webp`;
+
+      setTeamABadge(homeBadgeUrl);
+      setTeamBBadge(awayBadgeUrl);
+
+      if (match.sources && match.sources.length > 0) {
+        const streamPromises = match.sources.map(async (src) => {
+          try {
+            const res = await fetch(
+              `https://streamed.su/api/stream/${src.source}/${src.id}`,
+            );
+            if (!res.ok) throw new Error("Stream fetch failed");
+            return await res.json();
+          } catch (err) {
+            console.error(`Error fetching stream from ${src.source}:`, err);
+            return null;
+          }
+        });
+
+        const results = await Promise.all(streamPromises);
+        const validStreams = results
+          .filter((r) => Array.isArray(r))
+          .flat()
+          .filter((s) => s?.embedUrl);
+
+        setStreams(validStreams);
+
+        if (validStreams.length > 0) {
+          setTimeout(() => {
+            setSelectedStreamUrl(validStreams[0].embedUrl);
+          }, 300); // Give slight delay to render properly
+        }
+      } else {
+        setError("No sources found in match data.");
+      }
+    } catch (err) {
+      setError("Error fetching match details or streams.");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchMatchDetails();
+  }, [id, fetchMatchDetails]);
+
+  const handleStreamSelection = (streamUrl) => {
+    setSelectedStreamUrl(streamUrl);
+    // Preload the stream by creating a hidden iframe with the selected URL
+    if (preloadRef.current) {
+      preloadRef.current.src = streamUrl;
+    }
+  };
 
   if (loading)
     return (
@@ -128,10 +146,12 @@ const MatchDetails = () => {
 
       {/* Live Match Player */}
       {selectedStreamUrl && (
-        <div className="aspect-w-10 aspect-h-10 mb-4 rounded-xl overflow-hidden border border-white">
+        <div className="aspect-w-16 aspect-h-9 mb-4 rounded-xl overflow-hidden border border-white">
           <iframe
+            ref={iframeRef}
             src={selectedStreamUrl}
             allow="fullscreen"
+            loading="lazy"
             title="Match Stream"
             className="w-full h-full"
           ></iframe>
@@ -155,12 +175,13 @@ const MatchDetails = () => {
         </button>
       </div>
 
-      {/* YouTube Help Video (Hidden until clicked) */}
+      {/* YouTube Help Video */}
       {showVideo && (
         <div className="aspect-w-16 aspect-h-9 mb-10 rounded-xl overflow-hidden border border-white">
           <iframe
             src="https://www.youtube.com/embed/ijvlRpCOgfU?si=xlLaCcoUKavKLKSd"
             allow="fullscreen"
+            loading="lazy"
             title="uBlock Help Video"
             className="w-full h-full"
           ></iframe>
@@ -178,6 +199,14 @@ const MatchDetails = () => {
             <div
               key={index}
               className="bg-black/60 p-4 rounded-xl shadow-md transition-all duration-300 hover:border hover:border-yellow-400 cursor-pointer"
+              onMouseEnter={() => {
+                // Prefetch iframe before switching
+                const preload = document.createElement("iframe");
+                preload.src = stream.embedUrl;
+                preload.style.display = "none";
+                document.body.appendChild(preload);
+                setTimeout(() => document.body.removeChild(preload), 1000);
+              }}
             >
               <div className="text-white mb-3">
                 <h3 className="text-xl font-bold mb-2">Stream #{index + 1}</h3>
@@ -193,7 +222,7 @@ const MatchDetails = () => {
               </div>
               <div className="text-center">
                 <button
-                  onClick={() => setSelectedStreamUrl(stream.embedUrl)}
+                  onClick={() => handleStreamSelection(stream.embedUrl)}
                   className="bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-200 transition cursor-pointer"
                 >
                   🎥 Watch Stream
@@ -207,6 +236,15 @@ const MatchDetails = () => {
           No streams available for this match.
         </p>
       )}
+
+      {/* Hidden iframe for preloading */}
+      <iframe
+        ref={preloadRef}
+        style={{ display: "none" }}
+        title="Preload Stream"
+        allow="fullscreen"
+        loading="lazy"
+      ></iframe>
     </div>
   );
 };
