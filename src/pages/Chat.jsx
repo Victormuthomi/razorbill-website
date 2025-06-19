@@ -19,6 +19,7 @@ export default function Chat() {
     sessionStorage.setItem("sportgpt-chat", JSON.stringify(chatHistory));
   }, [chatHistory]);
 
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!question.trim()) return;
@@ -28,7 +29,7 @@ export default function Chat() {
     setQuestion("");
 
     try {
-      const res = await axios.post("http://localhost:5000/ask", {
+      const res = await axios.post(`${baseURL}/ask`, {
         question: userQuestion,
       });
 
