@@ -15,6 +15,7 @@ import MatchDetails from "./pages/MatchDetails";
 import NotFound from "./pages/NotFound";
 import ResultsPage from "./pages/ResultsPage";
 import Movies from "./pages/Movies";
+import Sportgpt from "./pages/Sportgpt";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -24,6 +25,7 @@ const router = createBrowserRouter(
       <Route path="/matches/:id" element={<MatchDetails />} />
       <Route path="/results" element={<ResultsPage />} />
       <Route path="/movies" element={<Movies />} />
+      <Route path="/sportgpt" element={<Sportgpt />} />
       <Route path="*" element={<NotFound />} />
     </Route>,
   ),
