@@ -6,19 +6,17 @@ import { ImSpinner8 } from "react-icons/im";
 export default function Chat() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [chatHistory, setChatHistory] = useState(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sportgpt-chat");
+      const saved = sessionStorage.getItem("sportgpt-chat");
       return saved ? JSON.parse(saved) : [];
     }
     return [];
   });
 
   useEffect(() => {
-    localStorage.setItem("sportgpt-chat", JSON.stringify(chatHistory));
-    const clearChat = () => localStorage.removeItem("sportgpt-chat");
-    window.addEventListener("beforeunload", clearChat);
-    return () => window.removeEventListener("beforeunload", clearChat);
+    sessionStorage.setItem("sportgpt-chat", JSON.stringify(chatHistory));
   }, [chatHistory]);
 
   const handleSubmit = async (e) => {
@@ -69,12 +67,10 @@ export default function Chat() {
       className="flex flex-col items-center justify-center text-center text-white py-10 px-6 sm:px-8 md:px-12 transition-all duration-300"
       style={{ background: "transparent" }}
     >
-      {/* Title */}
       <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">
         Ask SportGPT
       </h2>
 
-      {/* Chat History */}
       <div className="w-full max-w-2xl flex flex-col gap-6 mb-6">
         {chatHistory.map((chat, index) => (
           <div
@@ -84,7 +80,6 @@ export default function Chat() {
             <p className="font-semibold mb-1">You: {chat.question}</p>
             <p className="whitespace-pre-line">SportGPT: {chat.answer}</p>
 
-            {/* Copy button */}
             <button
               onClick={() => handleCopy(index, chat.answer)}
               className="absolute top-3 right-3 flex items-center gap-1 text-sm"
@@ -96,7 +91,6 @@ export default function Chat() {
         ))}
       </div>
 
-      {/* Input & Button */}
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-2xl relative flex items-center"
@@ -120,7 +114,6 @@ export default function Chat() {
         </button>
       </form>
 
-      {/* Disclaimer */}
       <p className="text-sm text-white opacity-70 mt-4 max-w-2xl">
         💡 SportGPT answers general sports questions. Live and recent data may
         not be current — real-time updates will be available soon
