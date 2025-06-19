@@ -22,6 +22,9 @@ export default function Header() {
         <Link to="/matches" className="hover:underline">
           Matches
         </Link>
+        <Link to="/sportgpt" className="hover:underline">
+          SportGPT
+        </Link>
         <Link to="/results" className="hover:underline">
           Results
         </Link>
