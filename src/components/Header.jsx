@@ -59,6 +59,13 @@ export default function Header() {
               Matches
             </Link>
             <Link
+              to="/sportgpt"
+              className="hover:underline"
+              onClick={() => setMenuOpen(false)}
+            >
+              SportGPT
+            </Link>
+            <Link
               to="/results"
               className="hover:underline"
               onClick={() => setMenuOpen(false)}
