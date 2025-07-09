@@ -61,7 +61,7 @@ export default function Hero({ menuOpen }) {
         <div className="mt-8 md:mt-6">
           <a
             href="/matches"
-            className="px-6 py-3 rounded-full bg-white text-black hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="px-6 py-3 rounded-full bg-white text-black hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-white/15"
           >
             Get Started
           </a>
