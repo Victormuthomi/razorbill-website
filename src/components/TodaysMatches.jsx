@@ -125,33 +125,35 @@ const TodayMatches = () => {
   );
 
   return (
-    <div className="my-6 px-4 sm:px-6 lg:px-12">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white">
+    <div className="my-6 px-4 sm:px-6 lg:px-12 text-center">
+      <div className="font-lora flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 text-center">
+        <h2 className="font-playfair text-2xl sm:text-3xl lg:text-4xl text-yellow-400">
           Popular Matches Today
         </h2>
         <input
           type="text"
           placeholder="Search teams..."
-          className="w-full sm:w-auto border border-white bg-transparent text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="font-inter w-full sm:w-auto rounded-3xl border border-white/15 bg-transparent text-white px-4 py-2 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/5 transition duration-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
         />
       </div>
 
       {sortedEntries.length === 0 ? (
-        <p className="text-center text-white">No popular matches today.</p>
+        <p className="font-lora text-center text-white">
+          No popular matches today.
+        </p>
       ) : (
         sortedEntries.map(([sportId, matches]) => (
           <div key={sportId} className="mb-10">
-            <h3 className="text-xl sm:text-2xl text-white mb-4 font-semibold">
+            <h3 className="font-lora text-xl sm:text-2xl text-white mb-4 font-semibold">
               {sportsMap[sportId] || "Other"}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {matches.map((match) => (
                 <div
                   key={match.id}
-                  className="relative bg-black/60 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-yellow-400 hover:border"
+                  className="rounded-xl border border-white/15 bg-black/60 shadow-md p-6"
                 >
                   {/* Local Toast on Card */}
                   {activeToastMatchId === match.id && (
@@ -168,12 +170,14 @@ const TodayMatches = () => {
                         alt={match.teams?.home?.name}
                         className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
                       />
-                      <p className="text-white mt-2 text-sm sm:text-base">
+                      <p className="font-lora text-white mt-2 text-sm sm:text-base">
                         {match.teams?.home?.name}
                       </p>
                     </div>
 
-                    <div className="text-white text-lg font-bold">VS</div>
+                    <div className="font-playfair text-white text-lg font-bold">
+                      VS
+                    </div>
 
                     <div className="flex flex-col items-center text-center">
                       <img
@@ -181,7 +185,7 @@ const TodayMatches = () => {
                         alt={match.teams?.away?.name}
                         className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
                       />
-                      <p className="text-white mt-2 text-sm sm:text-base">
+                      <p className="font-lora text-white mt-2 text-sm sm:text-base">
                         {match.teams?.away?.name}
                       </p>
                     </div>
@@ -195,8 +199,9 @@ const TodayMatches = () => {
                       <div className="flex justify-center items-center mt-4 space-x-3">
                         <Link
                           to={`/matches/${match.id}`}
-                          className="bg-white text-black px-4 py-2 rounded-full text-sm sm:text-base hover:bg-gray-200 transition duration-200"
+                          className="font-inter rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium px-6 py-3 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         >
+                          {" "}
                           Watch Now
                         </Link>
                         <button
@@ -204,17 +209,15 @@ const TodayMatches = () => {
                           disabled={isMatchNotified(match.id)}
                           className={`${
                             isMatchNotified(match.id)
-                              ? "bg-green-500 text-white cursor-default"
-                              : "bg-yellow-400 text-black hover:bg-yellow-500"
+                              ? "font-inter ml-4 text-sm text-gray-300 px-6 py-3 rounded-full transition duration-200 hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
+                              : "font-inter ml-4 text-sm text-gray-300 px-6 py-3 rounded-full transition duration-200 hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
                           } px-4 py-2 rounded-full text-sm sm:text-base transition duration-200`}
                         >
-                          {isMatchNotified(match.id)
-                            ? "✅ Notified"
-                            : "🔔 Notify Me"}
+                          {isMatchNotified(match.id) ? "Notified" : "Notify Me"}
                         </button>
                       </div>
                     ) : (
-                      <p className="mt-2 text-white text-sm">
+                      <p className="font-lora mt-2 text-white text-sm">
                         No live stream available.
                       </p>
                     )}

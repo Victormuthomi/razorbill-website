@@ -12,8 +12,8 @@ const MatchDetails = () => {
   const [error, setError] = useState(null);
   const [showVideo, setShowVideo] = useState(false);
 
-  const iframeRef = useRef(null); // Ref for the iframe to avoid unnecessary re-renders
-  const preloadRef = useRef(null); // Hidden iframe for preloading
+  const iframeRef = useRef(null);
+  const preloadRef = useRef(null);
 
   const getTeamsFromId = (matchId) => {
     const parts = matchId.split("-vs-");
@@ -80,7 +80,7 @@ const MatchDetails = () => {
         if (validStreams.length > 0) {
           setTimeout(() => {
             setSelectedStreamUrl(validStreams[0].embedUrl);
-          }, 300); // Give slight delay to render properly
+          }, 300);
         }
       } else {
         setError("No sources found in match data.");
@@ -98,11 +98,12 @@ const MatchDetails = () => {
 
   const handleStreamSelection = (streamUrl) => {
     setSelectedStreamUrl(streamUrl);
-    // Preload the stream by creating a hidden iframe with the selected URL
     if (preloadRef.current) {
       preloadRef.current.src = streamUrl;
     }
   };
+
+  const { teamA, teamB } = getTeamsFromId(id);
 
   if (loading)
     return (
@@ -113,71 +114,59 @@ const MatchDetails = () => {
   if (error)
     return <div className="text-center text-red-500 py-10">Error: {error}</div>;
 
-  const { teamA, teamB } = getTeamsFromId(id);
-
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
       {/* Match Teams */}
-      <div className="flex justify-center gap-8 mb-8">
+      <div className="flex justify-center gap-8 mb-8 items-center">
         <div className="flex items-center gap-2">
           {teamABadge && (
-            <img
-              src={teamABadge}
-              alt={`${teamA} Badge`}
-              className="h-12 w-auto"
-            />
+            <img src={teamABadge} alt={teamA} className="h-12 w-auto" />
           )}
-          <h3 className="text-white">{teamA}</h3>
+          <h3 className="font-lora text-white text-lg sm:text-xl">{teamA}</h3>
         </div>
-        <div className="flex items-center justify-center text-white text-2xl">
-          VS
-        </div>
+        <div className="text-white text-2xl font-playfair">VS</div>
         <div className="flex items-center gap-2">
           {teamBBadge && (
-            <img
-              src={teamBBadge}
-              alt={`${teamB} Badge`}
-              className="h-12 w-auto"
-            />
+            <img src={teamBBadge} alt={teamB} className="h-12 w-auto" />
           )}
-          <h3 className="text-white">{teamB}</h3>
+          <h3 className="font-lora text-white text-lg sm:text-xl">{teamB}</h3>
         </div>
       </div>
 
-      {/* Live Match Player */}
+      {/* Live Stream Iframe */}
       {selectedStreamUrl && (
-        <div className="aspect-w-16 aspect-h-9 mb-4 rounded-xl overflow-hidden border border-white">
+        <div className="relative mx-auto mb-6 rounded-xl overflow-hidden border border-white/15 shadow-md w-[320px] h-[280px] sm:w-[360px] sm:h-[360px] md:w-[900px] md:h-[400px]">
           <iframe
             ref={iframeRef}
             src={selectedStreamUrl}
             allow="fullscreen"
             loading="lazy"
             title="Match Stream"
-            className="w-full h-full"
+            className="absolute top-0 left-0 w-full h-full"
           ></iframe>
         </div>
       )}
 
-      {/* Yellow Ad Message */}
-      <div className="text-yellow-400 text-center mb-4 text-sm sm:text-base">
+      {/* Note */}
+      <div className="font-inter text-yellow-400 text-center mb-4 text-sm sm:text-base">
         Note: If you're redirected or see popups, just close them and return
-        here. Ads may appear. For a smoother experience, consider using an ad
-        blocker like uBlock Origin.
+        here. For a smoother experience, consider using an ad blocker like
+        uBlock Origin.
       </div>
 
-      {/* uBlock Help Button */}
+      {/* Help Button */}
       <div className="text-center mb-10">
         <button
           onClick={() => setShowVideo(true)}
-          className="bg-white hover:bg-gray-200 text-black px-6 py-3 rounded-lg font-semibold transition duration-200"
+          className="font-inter rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium px-6 py-3 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
         >
           Need help setting up uBlock? Click to watch tutorial
         </button>
       </div>
 
-      {/* YouTube Help Video */}
+      {/* Help Video */}
       {showVideo && (
-        <div className="aspect-w-16 aspect-h-9 mb-10 rounded-xl overflow-hidden border border-white">
+        <div className="aspect-w-16 aspect-h-9 mb-10 rounded-xl overflow-hidden border border-white/15 shadow-md">
           <iframe
             src="https://www.youtube.com/embed/ijvlRpCOgfU?si=xlLaCcoUKavKLKSd"
             allow="fullscreen"
@@ -188,8 +177,8 @@ const MatchDetails = () => {
         </div>
       )}
 
-      {/* Stream Options */}
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-yellow-400 mb-8">
+      {/* Available Streams */}
+      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8 font-playfair">
         Available Streams
       </h2>
 
@@ -198,9 +187,8 @@ const MatchDetails = () => {
           {streams.map((stream, index) => (
             <div
               key={index}
-              className="bg-black/60 p-4 rounded-xl shadow-md transition-all duration-300 hover:border hover:border-yellow-400 cursor-pointer"
+              className="bg-black/60 border border-white/15 p-6 rounded-xl shadow-md transition-all duration-300 hover:border-white/40"
               onMouseEnter={() => {
-                // Prefetch iframe before switching
                 const preload = document.createElement("iframe");
                 preload.src = stream.embedUrl;
                 preload.style.display = "none";
@@ -209,21 +197,23 @@ const MatchDetails = () => {
               }}
             >
               <div className="text-white mb-3">
-                <h3 className="text-xl font-bold mb-2">Stream #{index + 1}</h3>
-                <p className="text-sm sm:text-base">
+                <h3 className="font-lora text-xl text-yellow-400 mb-2">
+                  Stream #{index + 1}
+                </h3>
+                <p className="font-lora text-sm sm:text-base">
                   <strong>Language:</strong> {stream.language}
                 </p>
-                <p className="text-sm sm:text-base">
-                  <strong>HD:</strong> {stream.hd ? "✅ Yes" : "❌ No"}
+                <p className="font-playfair text-sm sm:text-base">
+                  <strong>HD:</strong> {stream.hd ? " Yes" : "No"}
                 </p>
-                <p className="text-sm sm:text-base">
+                <p className="font-playfairtext-sm sm:text-base">
                   <strong>Source:</strong> {stream.source}
                 </p>
               </div>
               <div className="text-center">
                 <button
                   onClick={() => handleStreamSelection(stream.embedUrl)}
-                  className="bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-200 transition cursor-pointer"
+                  className="font-inter rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium px-6 py-3 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 >
                   🎥 Watch Stream
                 </button>
@@ -232,7 +222,7 @@ const MatchDetails = () => {
           ))}
         </div>
       ) : (
-        <p className="text-center text-white">
+        <p className="text-center text-white font-lora">
           No streams available for this match.
         </p>
       )}

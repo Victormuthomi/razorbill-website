@@ -51,18 +51,20 @@ const LiveMatches = () => {
 
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-yellow-400 mb-8">
+      <h2 className="font-playfair text-2xl sm:text-3xl lg:text-4xl text-center text-yellow-400 mb-8">
         Live Popular Matches
       </h2>
 
       {matches.length === 0 ? (
-        <p className="text-center text-white">No live matches at the moment.</p>
+        <p className="font-lora text-center text-white">
+          No live matches at the moment.
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {matches.map((match) => (
             <div
               key={match.id}
-              className="bg-black/60 p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:border-yellow-400 hover:border"
+              className="bg-black/60 w-full sm:w-auto rounded-3xl border border-white/15 text-white px-4 py-2 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/5 transition duration-200"
             >
               <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
                 {/* Home Team */}
@@ -70,14 +72,16 @@ const LiveMatches = () => {
                   <img
                     src={`https://streamed.su/api/images/badge/${match.teams?.home?.badge}.webp`}
                     alt={match.teams?.home?.name}
-                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
+                    className=" h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
                   />
-                  <p className="text-white mt-2 text-sm sm:text-base">
+                  <p className="font-lora text-white mt-2 text-sm sm:text-base">
                     {match.teams?.home?.name}
                   </p>
                 </div>
 
-                <div className="text-white font-bold text-lg">VS</div>
+                <div className="font-playfair text-white font-bold text-lg">
+                  VS
+                </div>
 
                 {/* Away Team */}
                 <div className="flex flex-col items-center text-center">
@@ -86,26 +90,26 @@ const LiveMatches = () => {
                     alt={match.teams?.away?.name}
                     className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
                   />
-                  <p className="text-white mt-2 text-sm sm:text-base">
+                  <p className="font-lora text-white mt-2 text-sm sm:text-base">
                     {match.teams?.away?.name}
                   </p>
                 </div>
               </div>
 
               <div className="text-center mt-4">
-                <p className="text-white text-sm mb-2">
+                <p className="font-lora text-white text-sm mb-2">
                   {new Date(match.date).toLocaleString()}
                 </p>
 
                 {match.sources && match.sources.length > 0 ? (
                   <Link
                     to={`/matches/${match.id}`}
-                    className="inline-block bg-white text-black px-5 py-2 rounded-full text-sm sm:text-base hover:bg-gray-200 transition duration-200"
+                    className="font-inter inline-block rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium px-6 py-3 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   >
                     Watch Now
                   </Link>
                 ) : (
-                  <p className="text-white text-sm">
+                  <p className="font-lora text-white text-sm">
                     No live stream available.
                   </p>
                 )}

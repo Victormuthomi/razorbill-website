@@ -19,8 +19,8 @@ export default function MatchesPage() {
     >
       {/* Section for the image at the top before the matches */}
       <div className="text-center py-6">
-        <h1 className="text-4xl text-white mt-6">Matches Page</h1>
-        <p className="text-white text-lg mt-2">
+        <h1 className="font-playfair text-4xl text-white mt-6">Matches Page</h1>
+        <p className="font-lora text-gray-300 text-lg mt-2">
           Catch live, upcoming, and today's match results!
         </p>
       </div>

@@ -10,25 +10,27 @@ export default function Header() {
       <div className="flex items-center">
         <Link to="/" className="flex items-center">
           <img src={logo} alt="Razorbill Logo" className="h-10 w-auto mr-2" />
-          <h1 className="text-2xl font-bold tracking-wide">Razorbill</h1>
+          <h1 className="font-playfair text-2xl font-bold tracking-wide">
+            Razorbill
+          </h1>
         </Link>
       </div>
 
       {/* Desktop Menu */}
       <nav className="space-x-6 hidden md:flex mr-8">
-        <Link to="/" className="hover:underline">
+        <Link to="/" className="font-playfair  hover:underline">
           Home
         </Link>
-        <Link to="/matches" className="hover:underline">
+        <Link to="/matches" className="font-playfair  hover:underline">
           Matches
         </Link>
-        <Link to="/sportgpt" className="hover:underline">
+        <Link to="/sportgpt" className="font-playfair hover:underline">
           SportGPT
         </Link>
-        <Link to="/results" className="hover:underline">
+        <Link to="/results" className="font-playfair hover:underline">
           Results
         </Link>
-        <Link to="/movies" className="hover:underline">
+        <Link to="/movies" className="font-playfair hover:underline">
           Movies
         </Link>
       </nav>

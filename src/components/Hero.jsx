@@ -11,12 +11,12 @@ export default function Hero({ menuOpen }) {
     >
       <div className="bg-black/50 p-6 rounded-lg max-w-4xl w-full">
         {/* Title */}
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight">
+        <h2 className=" font-playfair text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight">
           All Your Sports, Movies & Shows in One Place
         </h2>
 
         {/* Subtitle */}
-        <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
+        <p className="font-lora text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
           Stream live matches, ask SportGPT anything about sports, and soon
           enjoy top movies, trending series, sports results and live TV — all
           from Razorbill.
@@ -26,25 +26,25 @@ export default function Hero({ menuOpen }) {
         <div className="flex flex-wrap gap-2 justify-center mt-4 mb-8">
           <Link
             to="/matches"
-            className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-90 transition"
+            className="font-inter  px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             Live Sports
           </Link>
           <Link
             to="/sportgpt"
-            className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-90 transition"
+            className="font-inter  px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             SportGPT
           </Link>
           <Link
             to="/results"
-            className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-90 transition"
+            className="font-inter  px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             Results
           </Link>
           <Link
             to="/movies"
-            className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-90 transition"
+            className="font-inter  px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             Movies & Series (Coming Soon)
           </Link>
@@ -54,14 +54,14 @@ export default function Hero({ menuOpen }) {
         <img
           src={pen}
           alt="pen"
-          className="mt-0 md:mt-10 w-26 md:w-52 mx-auto transition-transform duration-500 hover:animate-bounce"
+          className="mt-0 md:mt-10 w-26 md:w-52 mx-auto transition-transform duration-500 animate-bounce hover:animate-none"
         />
 
         {/* CTA Button */}
         <div className="mt-8 md:mt-6">
           <a
             href="/matches"
-            className="bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
+            className="px-6 py-3 rounded-full bg-white text-black hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             Get Started
           </a>
