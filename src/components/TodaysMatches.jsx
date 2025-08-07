@@ -19,8 +19,8 @@ const TodayMatches = () => {
       try {
         let sportsData = JSON.parse(localStorage.getItem("sportsData"));
         if (!sportsData) {
-          const sportsResponse =
-            await `${baseURL}/api/matches/${sport.id}/popular`;
+          const sportsResponse = await fetch(`${baseURL}/api/sports`);
+
           if (!sportsResponse.ok) throw new Error("Failed to fetch sports.");
           sportsData = await sportsResponse.json();
           localStorage.setItem("sportsData", JSON.stringify(sportsData));
