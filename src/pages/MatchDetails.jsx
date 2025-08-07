@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import BASE_URL from "./api";
 
 const MatchDetails = () => {
   const { id } = useParams();
@@ -34,7 +33,9 @@ const MatchDetails = () => {
 
   const fetchMatchDetails = useCallback(async () => {
     try {
-      const matchRes = await fetch(`${BASE_URL}/api/matches/all/popular`);
+      const matchRes = await fetch(
+        "https://razorbill-backend.onrender.com/api/matches/all/popular"
+      );
       if (!matchRes.ok)
         throw new Error(`Failed to fetch: ${matchRes.statusText}`);
       const allMatches = await matchRes.json();
@@ -48,8 +49,8 @@ const MatchDetails = () => {
 
       setMatchDetails(match);
 
-      const homeBadgeUrl = `${BASE_URL}/images/badge/${match.teams?.home?.badge}.webp`;
-      const awayBadgeUrl = `${BASE_URL}/api/images/badge/${match.teams?.away?.badge}.webp`;
+      const homeBadgeUrl = `https://razorbill-backend.onrender.com/api/images/badge/${match.teams?.home?.badge}.webp`;
+      const awayBadgeUrl = `https://razorbill-backend.onrender.com/api/images/badge/${match.teams?.away?.badge}.webp`;
 
       setTeamABadge(homeBadgeUrl);
       setTeamBBadge(awayBadgeUrl);
@@ -58,7 +59,7 @@ const MatchDetails = () => {
         const streamPromises = match.sources.map(async (src) => {
           try {
             const res = await fetch(
-              `${BASE_URL}/stream/${src.source}/${src.id}`
+              `https://razorbill-backend.onrender.com/api/stream/${src.source}/${src.id}`
             );
             if (!res.ok) throw new Error("Stream fetch failed");
             return await res.json();
