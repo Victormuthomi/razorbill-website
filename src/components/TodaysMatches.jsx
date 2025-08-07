@@ -9,7 +9,7 @@ const TodayMatches = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [notified, setNotified] = useState(
-    () => JSON.parse(localStorage.getItem("notifiedMatches")) || [],
+    () => JSON.parse(localStorage.getItem("notifiedMatches")) || []
   );
   const [activeToastMatchId, setActiveToastMatchId] = useState(null);
 
@@ -18,7 +18,8 @@ const TodayMatches = () => {
       try {
         let sportsData = JSON.parse(localStorage.getItem("sportsData"));
         if (!sportsData) {
-          const sportsResponse = await fetch("https://streamed.su/api/sports");
+          const sportsResponse =
+            await `${baseURL}/api/matches/${sport.id}/popular`;
           if (!sportsResponse.ok) throw new Error("Failed to fetch sports.");
           sportsData = await sportsResponse.json();
           localStorage.setItem("sportsData", JSON.stringify(sportsData));
@@ -34,7 +35,7 @@ const TodayMatches = () => {
         await Promise.all(
           sportsData.map(async (sport) => {
             const response = await fetch(
-              `https://streamed.su/api/matches/${sport.id}/popular`,
+              `${baseURL}/api/matches/${sport.id}/popular`
             );
             if (response.ok) {
               const data = await response.json();
@@ -51,7 +52,7 @@ const TodayMatches = () => {
                 matchesBySport[sport.id] = todayMatches;
               }
             }
-          }),
+          })
         );
 
         setMatchesBySport(matchesBySport);
@@ -87,7 +88,7 @@ const TodayMatches = () => {
         new Audio(notifySound).play();
         alert("📢 Match starting soon!");
       },
-      timeout > 0 ? timeout : 1000,
+      timeout > 0 ? timeout : 1000
     );
   };
 
@@ -121,7 +122,7 @@ const TodayMatches = () => {
       if (aName === "football") return -1;
       if (bName === "football") return 1;
       return aName.localeCompare(bName);
-    },
+    }
   );
 
   return (
