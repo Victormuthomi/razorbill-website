@@ -12,15 +12,15 @@ const TodayMatches = () => {
     () => JSON.parse(localStorage.getItem("notifiedMatches")) || []
   );
   const [activeToastMatchId, setActiveToastMatchId] = useState(null);
-  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchSportsAndMatches = async () => {
       try {
         let sportsData = JSON.parse(localStorage.getItem("sportsData"));
         if (!sportsData) {
-          const sportsResponse = await fetch(`${baseURL}/api/sports`);
-
+          const sportsResponse = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/sports`
+          );
           if (!sportsResponse.ok) throw new Error("Failed to fetch sports.");
           sportsData = await sportsResponse.json();
           localStorage.setItem("sportsData", JSON.stringify(sportsData));
@@ -36,7 +36,9 @@ const TodayMatches = () => {
         await Promise.all(
           sportsData.map(async (sport) => {
             const response = await fetch(
-              `${baseURL}/api/matches/${sport.id}/popular`
+              `${import.meta.env.VITE_API_BASE_URL}/api/matches/${
+                sport.id
+              }/popular`
             );
             if (response.ok) {
               const data = await response.json();
