@@ -12,6 +12,7 @@ const TodayMatches = () => {
     () => JSON.parse(localStorage.getItem("notifiedMatches")) || []
   );
   const [activeToastMatchId, setActiveToastMatchId] = useState(null);
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchSportsAndMatches = async () => {
