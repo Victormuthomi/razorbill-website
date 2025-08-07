@@ -10,12 +10,12 @@ const LiveMatches = () => {
     const fetchLiveMatches = async () => {
       try {
         const response = await fetch(
-          "https://streamed.su/api/matches/live/popular",
+          `${import.meta.env.VITE_API_BASE_URL}/api/matches/live/popular`
         );
 
         if (!response.ok) {
           throw new Error(
-            "Failed to fetch live matches. Please try again later.",
+            "Failed to fetch live matches. Please try again later."
           );
         }
 

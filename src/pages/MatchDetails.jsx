@@ -34,7 +34,7 @@ const MatchDetails = () => {
   const fetchMatchDetails = useCallback(async () => {
     try {
       const matchRes = await fetch(
-        "https://streamed.su/api/matches/all/popular",
+        "https://razorbill-backend.onrender.com/api/matches/all/popular"
       );
       if (!matchRes.ok)
         throw new Error(`Failed to fetch: ${matchRes.statusText}`);
@@ -49,8 +49,8 @@ const MatchDetails = () => {
 
       setMatchDetails(match);
 
-      const homeBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.home?.badge}.webp`;
-      const awayBadgeUrl = `https://streamed.su/api/images/badge/${match.teams?.away?.badge}.webp`;
+      const homeBadgeUrl = `https://razorbill-backend.onrender.com/api/images/badge/${match.teams?.home?.badge}.webp`;
+      const awayBadgeUrl = `https://razorbill-backend.onrender.com/api/images/badge/${match.teams?.away?.badge}.webp`;
 
       setTeamABadge(homeBadgeUrl);
       setTeamBBadge(awayBadgeUrl);
@@ -59,7 +59,7 @@ const MatchDetails = () => {
         const streamPromises = match.sources.map(async (src) => {
           try {
             const res = await fetch(
-              `https://streamed.su/api/stream/${src.source}/${src.id}`,
+              `https://razorbill-backend.onrender.com/api/stream/${src.source}/${src.id}`
             );
             if (!res.ok) throw new Error("Stream fetch failed");
             return await res.json();
@@ -116,7 +116,6 @@ const MatchDetails = () => {
 
   return (
     <div className="my-6 px-4 sm:px-6 lg:px-12">
-      {/* Match Teams */}
       <div className="flex justify-center gap-8 mb-8 items-center">
         <div className="flex items-center gap-2">
           {teamABadge && (
@@ -133,7 +132,6 @@ const MatchDetails = () => {
         </div>
       </div>
 
-      {/* Live Stream Iframe */}
       {selectedStreamUrl && (
         <div className="relative mx-auto mb-6 rounded-xl overflow-hidden border border-white/15 shadow-md w-[320px] h-[280px] sm:w-[360px] sm:h-[360px] md:w-[900px] md:h-[400px]">
           <iframe
@@ -147,14 +145,12 @@ const MatchDetails = () => {
         </div>
       )}
 
-      {/* Note */}
       <div className="font-inter text-yellow-400 text-center mb-4 text-sm sm:text-base">
         Note: If you're redirected or see popups, just close them and return
         here. For a smoother experience, consider using an ad blocker like
         uBlock Origin.
       </div>
 
-      {/* Help Button */}
       <div className="text-center mb-10">
         <button
           onClick={() => setShowVideo(true)}
@@ -164,7 +160,6 @@ const MatchDetails = () => {
         </button>
       </div>
 
-      {/* Help Video */}
       {showVideo && (
         <div className="aspect-w-16 aspect-h-9 mb-10 rounded-xl overflow-hidden border border-white/15 shadow-md">
           <iframe
@@ -177,7 +172,6 @@ const MatchDetails = () => {
         </div>
       )}
 
-      {/* Available Streams */}
       <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center text-white mb-8 font-playfair">
         Available Streams
       </h2>
@@ -227,7 +221,6 @@ const MatchDetails = () => {
         </p>
       )}
 
-      {/* Hidden iframe for preloading */}
       <iframe
         ref={preloadRef}
         style={{ display: "none" }}
