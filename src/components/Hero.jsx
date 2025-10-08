@@ -46,7 +46,7 @@ export default function Hero({ menuOpen }) {
             to="/movies"
             className="font-inter  px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
-            Movies & Series (Coming Soon)
+            Movies & Series
           </Link>
         </div>
 
