@@ -17,9 +17,9 @@ export default function Hero({ menuOpen }) {
 
         {/* Subtitle */}
         <p className="font-lora text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
-          Stream live matches, ask SportGPT anything about sports, and soon
-          enjoy top movies, trending series, sports results and live TV — all
-          from Razorbill.
+          Stream live matches, ask SportGPT anything about sports, and enjoy top
+          movies, trending series, sports results and live TV — all from
+          Razorbill.
         </p>
 
         {/* Feature Links */}
