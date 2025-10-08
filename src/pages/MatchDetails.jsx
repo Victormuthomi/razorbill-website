@@ -34,7 +34,7 @@ const MatchDetails = () => {
   const fetchMatchDetails = useCallback(async () => {
     try {
       const matchRes = await fetch(
-        "https://razorbill-backend.onrender.com/api/matches/all/popular"
+        "https://razorbill-backend.onrender.com/api/matches/all/popular",
       );
       if (!matchRes.ok)
         throw new Error(`Failed to fetch: ${matchRes.statusText}`);
@@ -59,7 +59,7 @@ const MatchDetails = () => {
         const streamPromises = match.sources.map(async (src) => {
           try {
             const res = await fetch(
-              `https://razorbill-backend.onrender.com/api/stream/${src.source}/${src.id}`
+              `https://razorbill-backend.onrender.com/api/stream/${src.source}/${src.id}`,
             );
             if (!res.ok) throw new Error("Stream fetch failed");
             return await res.json();
@@ -146,9 +146,10 @@ const MatchDetails = () => {
       )}
 
       <div className="font-inter text-yellow-400 text-center mb-4 text-sm sm:text-base">
-        Note: If you're redirected or see popups, just close them and return
-        here. For a smoother experience, consider using an ad blocker like
-        uBlock Origin.
+        ⚠️ Note: On a slow network, start with "No HD" streams to prevent
+        buffering. <br />
+        💡 If you're redirected or see popups, just close them. For a smoother
+        experience, consider using an ad blocker like uBlock Origin.
       </div>
 
       <div className="text-center mb-10">
