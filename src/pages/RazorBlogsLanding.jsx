@@ -84,14 +84,38 @@ export default function RazorBlogsLanding() {
 
   return (
     <main className="bg-white text-gray-900 min-h-screen">
+      {/* Top Navbar */}
+      <nav className="w-full bg-white/80 backdrop-blur border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center text-sm">
+          <div className="flex space-x-6 font-medium">
+            <Link to="/" className="hover:text-[#FFD400] transition">
+              Home
+            </Link>
+            <Link to="/blogs" className="hover:text-[#FFD400] transition">
+              Blogs
+            </Link>
+            <Link to="/authors" className="hover:text-[#FFD400] transition">
+              Authors
+            </Link>
+          </div>
+          <div className="flex space-x-6 font-medium">
+            <Link to="/login" className="hover:text-[#FFD400] transition">
+              Login
+            </Link>
+            <Link to="/register" className="hover:text-[#FFD400] transition">
+              Register
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="bg-gray-900 text-white py-20 px-6 md:px-12 text-center">
-        <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight">
-          Welcome to RazorBlogs
+      <section className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white py-20 px-6 md:px-12 text-center">
+        <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight tracking-wide">
+          Where Stories Grow.
         </h1>
         <p className="text-xl md:text-2xl mb-6 max-w-3xl mx-auto">
-          Discover amazing stories, explore insightful blogs, and follow your
-          favorite authors.
+          Read, write, and grow with a community of modern storytellers.
         </p>
         <Link
           to="#latest"
@@ -151,7 +175,9 @@ export default function RazorBlogsLanding() {
 
           {/* Latest Blogs */}
           <div id="latest">
-            <h2 className="text-3xl font-serif font-bold mb-6">Latest Blogs</h2>
+            <h2 className="text-3xl font-serif font-bold mb-6 tracking-wide">
+              Latest Blogs
+            </h2>
             <div className="grid md:grid-cols-2 gap-8">
               {latestBlogs.map((blog) => (
                 <Link
@@ -263,12 +289,17 @@ export default function RazorBlogsLanding() {
                       {blogger.name.charAt(0)}
                     </div>
                   )}
-                  <Link
-                    to={`/authors/${id}`}
-                    className="text-gray-800 font-medium hover:text-[#FFD400] transition"
-                  >
-                    {blogger.name} ({blogger.count} blogs)
-                  </Link>
+                  <div>
+                    <Link
+                      to={`/authors/${id}`}
+                      className="text-gray-800 font-medium hover:text-[#FFD400] transition"
+                    >
+                      {blogger.name}
+                    </Link>
+                    <p className="text-xs text-gray-500">
+                      {blogger.count} blogs • ⭐ Top Blogger
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -277,11 +308,11 @@ export default function RazorBlogsLanding() {
           {/* Register as Blogger */}
           <div className="p-8 bg-blue-50 rounded-lg text-center shadow-md mb-8">
             <h2 className="text-2xl font-serif font-bold mb-2">
-              Are you a blogger?
+              Become a Storyteller
             </h2>
             <p className="mb-4 text-gray-700">
-              Share your stories with the world — register now and start your
-              journey on RazorBlog!
+              Share your ideas, insights, and experiences — start your journey
+              with RazorBlog today.
             </p>
             <Link
               to="/register"
@@ -294,11 +325,11 @@ export default function RazorBlogsLanding() {
           {/* Join WhatsApp Group */}
           <div className="p-8 bg-yellow-50 rounded-lg text-center shadow-md">
             <h2 className="text-2xl font-serif font-bold mb-2">
-              Join our RazorBlog Hub!
+              Join the RazorBlog Hub
             </h2>
             <p className="mb-4 text-gray-700">
-              Connect with fellow bloggers and readers — join the RazorBlog Hub
-              on WhatsApp today
+              Connect with fellow storytellers and readers — share ideas, get
+              inspired, and grow together.
             </p>
             <a
               href="https://chat.whatsapp.com/YOUR_INVITE_LINK"
