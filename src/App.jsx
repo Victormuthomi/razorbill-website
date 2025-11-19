@@ -29,6 +29,9 @@ import Sportgpt from "./pages/Sportgpt";
 // Chat
 import Chat from "./pages/Chat";
 
+//blog
+import RazorBlogsLanding from "./pages/RazorBlogsLanding";
+
 // Not Found
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +68,9 @@ const router = createBrowserRouter(
 
       {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
+
+      {/* blogs */}
+      <Route path="/blogs" element={<RazorBlogsLanding />} />
     </Route>,
   ),
 );
