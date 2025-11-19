@@ -31,6 +31,15 @@ import Chat from "./pages/Chat";
 
 //blog
 import RazorBlogsLanding from "./pages/RazorBlogsLanding";
+import BlogDetails from "./pages/BlogDetails";
+// Author Auth
+import AuthorLogin from "./pages/AuthorLogin";
+import AuthorRegister from "./pages/AuthorRegister";
+import AuthorProfileEdit from "./pages/AuthorProfileEdit";
+import AuthorDashboard from "./pages/AuthorDashboard";
+import NewBlog from "./pages/NewBlog";
+import EditBlog from "./pages/EditBlog";
+import AuthorProfile from "./pages/AuthorProfile";
 
 // Not Found
 import NotFound from "./pages/NotFound";
@@ -71,6 +80,17 @@ const router = createBrowserRouter(
 
       {/* blogs */}
       <Route path="/blogs" element={<RazorBlogsLanding />} />
+      <Route path="/blogs/:id" element={<BlogDetails />} />
+      <Route path="/blogs/new" element={<NewBlog />} />
+      <Route path="/blogs/:id/edit" element={<EditBlog />} />
+
+      {/* Author Auth */}
+      <Route path="/authors/login" element={<AuthorLogin />} />
+      <Route path="/authors/register" element={<AuthorRegister />} />
+      <Route path="/authors/edit/:id" element={<AuthorProfileEdit />} />
+      <Route path="/authors/:id" element={<AuthorProfile />} />
+
+      <Route path="/authors/dashboard" element={<AuthorDashboard />} />
     </Route>,
   ),
 );
