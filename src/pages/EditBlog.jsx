@@ -1,5 +1,4 @@
-// src/pages/EditBlog.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
 import {
@@ -9,8 +8,17 @@ import {
   AiOutlineEye,
 } from "react-icons/ai";
 
-import { Editor } from "@toast-ui/react-editor";
-import "@toast-ui/editor/dist/toastui-editor.css";
+import {
+  Editor,
+  EditorState,
+  RichUtils,
+  convertFromRaw,
+  convertToRaw,
+  ContentState,
+} from "draft-js";
+import draftToHtml from "draftjs-to-html";
+import htmlToDraft from "html-to-draftjs";
+import "draft-js/dist/Draft.css";
 
 const categories = [
   "Technology",
@@ -35,14 +43,13 @@ const EditBlog = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
   const [content, setContent] = useState("");
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
-  const editorRef = useRef();
-
-  // Fetch author
+  // Fetch author info
   useEffect(() => {
     if (!token || !authorId) navigate("/authors/login");
 
@@ -60,6 +67,7 @@ const EditBlog = () => {
         setLoadingAuthor(false);
       }
     };
+
     fetchAuthor();
   }, [token, authorId, navigate]);
 
@@ -70,15 +78,25 @@ const EditBlog = () => {
         const res = await fetch(`${BLOG_URL}/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error("Failed to fetch blog");
+        if (!res.ok) throw new Error("Failed");
+
         const data = await res.json();
         const b = data.blog;
+
         setTitle(b.title);
         setCategory(b.category);
         setImageURL(b.image_url || "");
         setContent(b.content || "");
-        if (editorRef.current) {
-          editorRef.current.getInstance().setHTML(b.content || "");
+
+        // Load HTML into Draft.js
+        if (b.content) {
+          const blocksFromHtml = htmlToDraft(b.content);
+          const { contentBlocks, entityMap } = blocksFromHtml;
+          const contentState = ContentState.createFromBlockArray(
+            contentBlocks,
+            entityMap,
+          );
+          setEditorState(EditorState.createWithContent(contentState));
         }
       } catch (err) {
         console.error(err);
@@ -88,6 +106,20 @@ const EditBlog = () => {
     fetchBlog();
   }, [id, token, navigate]);
 
+  const handleEditorChange = (state) => {
+    setEditorState(state);
+    setContent(draftToHtml(convertToRaw(state.getCurrentContent())));
+  };
+
+  const toggleInlineStyle = (style) => {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, style));
+  };
+
+  const toggleBlockType = (blockType) => {
+    setEditorState(RichUtils.toggleBlockType(editorState, blockType));
+  };
+
+  // Upload image
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -102,6 +134,7 @@ const EditBlog = () => {
     return data.secure_url;
   };
 
+  // Update blog
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -110,14 +143,7 @@ const EditBlog = () => {
       let finalImageURL = imageURL;
       if (imageFile) finalImageURL = await uploadToCloudinary(imageFile);
 
-      const htmlContent = editorRef.current.getInstance().getHTML();
-
-      const payload = {
-        title,
-        category,
-        content: htmlContent,
-        image_url: finalImageURL,
-      };
+      const payload = { title, content, category, image_url: finalImageURL };
 
       const res = await fetch(`${BLOG_URL}/${id}`, {
         method: "PUT",
@@ -128,7 +154,8 @@ const EditBlog = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error("Failed to update blog");
+
       navigate(`/blogs/${id}`);
     } catch (err) {
       console.error(err);
@@ -169,6 +196,7 @@ const EditBlog = () => {
             </Link>
           </nav>
         </div>
+
         <button
           onClick={() => {
             localStorage.removeItem("authorToken");
@@ -181,7 +209,7 @@ const EditBlog = () => {
         </button>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <main className="flex-1 p-6 md:p-8">
         <h1 className="text-4xl font-playfair text-yellow-400 font-bold mb-4">
           Edit Blog
@@ -230,26 +258,59 @@ const EditBlog = () => {
               />
             </label>
 
-            <label className="flex flex-col text-gray-200">Content *</label>
-            <Editor
-              ref={editorRef}
-              initialValue={content}
-              previewStyle="vertical"
-              height="300px"
-              initialEditType="wysiwyg"
-              useCommandShortcut={true}
-              language="en-US"
-              hideModeSwitch={true}
-              toolbarItems={[
-                ["heading", "bold", "italic", "strike"],
-                ["hr", "quote", "code", "link"],
-                ["ul", "ol"],
-                ["image"],
-              ]}
-              onChange={() =>
-                setContent(editorRef.current.getInstance().getHTML())
-              }
-            />
+            {/* Draft.js Toolbar */}
+            <div className="flex gap-2 mb-1">
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("BOLD")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("ITALIC")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("UNDERLINE")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                U
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("CODE")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                Code
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("unordered-list-item")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                UL
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("ordered-list-item")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                OL
+              </button>
+            </div>
+
+            <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[200px] p-2 text-white">
+              <Editor
+                editorState={editorState}
+                onChange={handleEditorChange}
+                placeholder="Edit your blog..."
+              />
+            </div>
 
             <button
               type="submit"
@@ -265,20 +326,20 @@ const EditBlog = () => {
             {imageFile ? (
               <img
                 src={URL.createObjectURL(imageFile)}
-                alt="Preview"
                 className="w-full rounded-xl object-cover max-h-64"
+                alt="Preview"
               />
             ) : imageURL ? (
               <img
                 src={imageURL}
-                alt="Preview"
                 className="w-full rounded-xl object-cover max-h-64"
+                alt="Preview"
               />
             ) : null}
+
             <h3 className="text-white text-xl font-semibold">{title}</h3>
-            {category && (
-              <span className="text-gray-400 text-sm">{category}</span>
-            )}
+            <span className="text-gray-400 text-sm">{category}</span>
+
             <div
               className="prose prose-invert max-w-none text-white"
               dangerouslySetInnerHTML={{ __html: content }}

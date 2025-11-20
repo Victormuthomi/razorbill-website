@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@blocknote/core": "^0.42.3",
+    "@blocknote/mantine": "^0.42.3",
+    "@blocknote/react": "^0.42.3",
     "@lexical/link": "^0.38.2",
     "@lexical/list": "^0.38.2",
     "@lexical/react": "^0.38.2",
     "@lexical/rich-text": "^0.38.2",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.4",
     "@tiptap/extension-code-block-lowlight": "^3.11.0",
     "@tiptap/extension-color": "^3.11.0",
@@ -24,8 +28,6 @@
     "@tiptap/extension-underline": "^3.11.0",
     "@tiptap/react": "^3.11.0",
     "@tiptap/starter-kit": "^3.11.0",
-    "@toast-ui/editor": "^3.2.2",
-    "@toast-ui/react-editor": "^3.2.3",
     "@vercel/analytics": "^1.5.0",
     "axios": "^1.10.0",
     "cloudinary": "^2.8.0",

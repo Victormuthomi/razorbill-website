@@ -1,8 +1,6 @@
-// src/pages/NewBlog.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AUTHOR_URL, BLOG_URL } from "../api";
-
 import {
   AiOutlineLogout,
   AiOutlinePlus,
@@ -10,11 +8,11 @@ import {
   AiOutlineEye,
   AiOutlineMenu,
   AiOutlineClose,
-  AiOutlineCopy,
 } from "react-icons/ai";
 
-import { Editor } from "@toast-ui/react-editor";
-import "@toast-ui/editor/dist/toastui-editor.css";
+import { Editor, EditorState, RichUtils, convertToRaw } from "draft-js";
+import draftToHtml from "draftjs-to-html";
+import "draft-js/dist/Draft.css";
 
 const categories = [
   "Technology",
@@ -38,19 +36,16 @@ const NewBlog = () => {
   const [category, setCategory] = useState(categories[0]);
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState(""); // live content state
+  const [content, setContent] = useState("");
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
-  const editorRef = useRef();
-
-  // Fetch author info
+  // Fetch author
   useEffect(() => {
-    if (!token || !authorId) {
-      navigate("/authors/login");
-      return;
-    }
+    if (!token || !authorId) navigate("/authors/login");
+
     const fetchAuthor = async () => {
       try {
         const res = await fetch(`${AUTHOR_URL}/${authorId}`, {
@@ -68,20 +63,29 @@ const NewBlog = () => {
     fetchAuthor();
   }, [token, authorId, navigate]);
 
-  // Cloudinary upload
+  // Editor change
+  const handleEditorChange = (state) => {
+    setEditorState(state);
+    setContent(draftToHtml(convertToRaw(state.getCurrentContent())));
+  };
+
+  const toggleInlineStyle = (style) => {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, style));
+  };
+
+  const toggleBlockType = (blockType) => {
+    setEditorState(RichUtils.toggleBlockType(editorState, blockType));
+  };
+
+  // Upload image
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "razorblogs");
-
     const res = await fetch(
       "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
-      {
-        method: "POST",
-        body: formData,
-      },
+      { method: "POST", body: formData },
     );
-
     if (!res.ok) throw new Error("Failed to upload image");
     const data = await res.json();
     return data.secure_url;
@@ -91,18 +95,11 @@ const NewBlog = () => {
   const handlePublish = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       let uploadedImageUrl = "";
       if (imageFile) uploadedImageUrl = await uploadToCloudinary(imageFile);
 
-      const body = {
-        title,
-        content, // saved as HTML
-        category,
-        image_url: uploadedImageUrl,
-      };
-
+      const body = { title, content, category, image_url: uploadedImageUrl };
       const res = await fetch(BLOG_URL, {
         method: "POST",
         headers: {
@@ -111,11 +108,8 @@ const NewBlog = () => {
         },
         body: JSON.stringify(body),
       });
-
       if (!res.ok) throw new Error("Failed to publish blog");
 
-      const data = await res.json();
-      console.log("Blog created:", data);
       navigate("/authors/dashboard");
     } catch (err) {
       console.error(err);
@@ -130,27 +124,8 @@ const NewBlog = () => {
       <div className="text-white text-center py-10">Loading author...</div>
     );
 
-  // Copy code block content
-  const copyCode = (code) => {
-    navigator.clipboard.writeText(code);
-    alert("Code copied!");
-  };
-
   return (
     <div className="min-h-screen bg-black/80 flex flex-col md:flex-row">
-      {/* Mobile Toggle */}
-      <div className="md:hidden flex justify-between items-center p-4 border-b border-gray-700">
-        <h2 className="text-yellow-400 font-playfair text-xl font-bold">
-          New Blog
-        </h2>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-yellow-400 text-2xl"
-        >
-          {sidebarOpen ? <AiOutlineClose /> : <AiOutlineMenu />}
-        </button>
-      </div>
-
       {/* Sidebar */}
       <aside
         className={`bg-black/70 p-6 flex flex-col justify-between border-r border-gray-700 md:w-64 w-full md:block ${
@@ -165,14 +140,12 @@ const NewBlog = () => {
             >
               <AiOutlinePlus /> Create Blog
             </Link>
-
             <Link
               to={`/authors/edit/${authorId}`}
               className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
             >
               <AiOutlineEdit /> Edit Profile
             </Link>
-
             <Link
               to={`/authors/${authorId}`}
               className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
@@ -181,7 +154,6 @@ const NewBlog = () => {
             </Link>
           </nav>
         </div>
-
         <button
           onClick={() => {
             localStorage.removeItem("authorToken");
@@ -194,7 +166,7 @@ const NewBlog = () => {
         </button>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="flex-1 p-6 md:p-8">
         <h1 className="text-4xl font-playfair text-yellow-400 font-bold mb-4">
           Create a New Blog
@@ -209,7 +181,6 @@ const NewBlog = () => {
             onSubmit={handlePublish}
             className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4"
           >
-            {/* Title */}
             <label className="flex flex-col text-gray-200">
               Title *
               <input
@@ -221,7 +192,6 @@ const NewBlog = () => {
               />
             </label>
 
-            {/* Category */}
             <label className="flex flex-col text-gray-200">
               Category
               <select
@@ -235,7 +205,6 @@ const NewBlog = () => {
               </select>
             </label>
 
-            {/* Image upload */}
             <label className="flex flex-col text-gray-200">
               Blog Image
               <input
@@ -246,27 +215,59 @@ const NewBlog = () => {
               />
             </label>
 
-            {/* Editor */}
-            <label className="flex flex-col text-gray-200">Content *</label>
-            <Editor
-              ref={editorRef}
-              initialValue=""
-              previewStyle="vertical"
-              height="300px"
-              initialEditType="wysiwyg"
-              useCommandShortcut={true}
-              language="en-US"
-              hideModeSwitch={true}
-              toolbarItems={[
-                ["heading", "bold", "italic", "strike"],
-                ["hr", "quote", "code", "link"],
-                ["ul", "ol"],
-                ["image"],
-              ]}
-              onChange={() =>
-                setContent(editorRef.current.getInstance().getHTML())
-              }
-            />
+            {/* Draft.js Toolbar */}
+            <div className="flex gap-2 mb-1">
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("BOLD")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("ITALIC")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("UNDERLINE")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                U
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("unordered-list-item")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                UL
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("CODE")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                Code
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("ordered-list-item")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                OL
+              </button>
+            </div>
+
+            <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[200px] p-2 text-white">
+              <Editor
+                editorState={editorState}
+                onChange={handleEditorChange}
+                placeholder="Write your blog..."
+              />
+            </div>
 
             <button
               type="submit"
@@ -288,29 +289,11 @@ const NewBlog = () => {
               />
             )}
             <h3 className="text-white text-xl font-semibold">{title}</h3>
-            {category && (
-              <span className="text-gray-400 text-sm">{category}</span>
-            )}
+            <span className="text-gray-400 text-sm">{category}</span>
             <div
               className="prose prose-invert max-w-none text-white"
               dangerouslySetInnerHTML={{ __html: content }}
             />
-
-            {/* Add copy button for code blocks */}
-            {content &&
-              Array.from(document.querySelectorAll(".prose pre code")).forEach(
-                (block) => {
-                  if (!block.parentElement.querySelector(".copy-btn")) {
-                    const btn = document.createElement("button");
-                    btn.innerText = "Copy";
-                    btn.className =
-                      "copy-btn absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded text-xs";
-                    btn.onclick = () => copyCode(block.innerText);
-                    block.parentElement.style.position = "relative";
-                    block.parentElement.appendChild(btn);
-                  }
-                },
-              )}
           </div>
         </div>
       </main>

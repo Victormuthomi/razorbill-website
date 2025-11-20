@@ -399,7 +399,7 @@ export default function RazorBlogsLanding() {
               inspired, and grow together.
             </p>
             <a
-              href="https://chat.whatsapp.com/YOUR_INVITE_LINK"
+              href="https://chat.whatsapp.com/KFKfAVTal37GX1EdGUGjjH"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-6 py-3 bg-[#25D366] text-white font-semibold rounded-lg hover:bg-green-600 transition"
