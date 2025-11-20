@@ -1,12 +1,16 @@
 // src/pages/AuthorProfileEdit.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { AUTHOR_URL } from "../api";
 import {
   AiOutlineEye,
   AiOutlineEyeInvisible,
   AiOutlineDelete,
+  AiOutlineArrowLeft,
 } from "react-icons/ai";
+
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dpiitjfzd/upload";
+const UPLOAD_PRESET = "razorblogs";
 
 const AuthorProfileEdit = () => {
   const navigate = useNavigate();
@@ -15,13 +19,19 @@ const AuthorProfileEdit = () => {
   const authorId = params.id || storedId;
   const token = localStorage.getItem("authorToken");
 
-  const [author, setAuthor] = useState({ name: "", email: "", phone: "" });
+  const [author, setAuthor] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    avatar_url: "",
+  });
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [countryCode, setCountryCode] = useState("+254");
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // Fetch author details
   const fetchAuthor = async () => {
@@ -47,12 +57,14 @@ const AuthorProfileEdit = () => {
           name: a.name || "",
           email: a.email || "",
           phone: number || "",
+          avatar_url: a.avatar_url || "",
         });
       } else {
         setAuthor({
           name: a.name || "",
           email: a.email || "",
           phone: a.phone || "",
+          avatar_url: a.avatar_url || "",
         });
       }
     } catch (err) {
@@ -83,10 +95,27 @@ const AuthorProfileEdit = () => {
 
     setLoading(true);
     try {
+      let avatarUrl = author.avatar_url;
+
+      // Upload avatar to Cloudinary if selected
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append("file", avatarFile);
+        formData.append("upload_preset", UPLOAD_PRESET);
+
+        const cloudRes = await fetch(CLOUDINARY_URL, {
+          method: "POST",
+          body: formData,
+        });
+        const cloudData = await cloudRes.json();
+        avatarUrl = cloudData.secure_url;
+      }
+
       const body = {
         name: author.name,
         email: author.email,
         phone: countryCode + author.phone,
+        avatar_url: avatarUrl,
       };
       if (password) body.password = password;
 
@@ -138,6 +167,13 @@ const AuthorProfileEdit = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      <Link
+        to="/authors/dashboard"
+        className="self-start mb-4 flex items-center gap-2 text-yellow-400 hover:text-yellow-500"
+      >
+        <AiOutlineArrowLeft /> Back to Dashboard
+      </Link>
+
       <div className="max-w-xl text-center mb-8">
         <h1 className="text-4xl font-bold text-yellow-400 mb-4">
           Edit Profile
@@ -152,14 +188,24 @@ const AuthorProfileEdit = () => {
         {success && <p className="text-green-500 text-sm mb-2">{success}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Default Avatar */}
+          {/* Avatar Upload */}
           <div className="flex justify-center mb-4">
             <img
-              src="/default-avatar.png"
+              src={
+                avatarFile
+                  ? URL.createObjectURL(avatarFile)
+                  : author.avatar_url || "/default-avatar.png"
+              }
               alt="Avatar"
               className="w-24 h-24 rounded-full object-cover border border-gray-500"
             />
           </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setAvatarFile(e.target.files[0])}
+            className="w-full text-white"
+          />
 
           {/* Name */}
           <input

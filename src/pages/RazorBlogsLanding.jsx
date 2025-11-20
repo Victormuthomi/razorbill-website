@@ -1,12 +1,17 @@
-// src/pages/RazorBlogsLanding.jsx
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
 
 export default function RazorBlogsLanding() {
+  const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [latestLimit, setLatestLimit] = useState(4); // Limit Latest Blogs initially
+  const [trendingLimit, setTrendingLimit] = useState(5);
+
+  const token = localStorage.getItem("authorToken");
+  const authorId = localStorage.getItem("authorId");
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -14,16 +19,14 @@ export default function RazorBlogsLanding() {
         const res = await fetch(BLOG_URL);
         if (!res.ok) throw new Error("Failed to fetch blogs.");
         const data = await res.json();
-
-        // Blogs already include authorName from backend
         const blogsWithAuthors = data.map((blog) => ({
           ...blog,
           author: {
+            id: blog.blog?.author_id || "unknown",
             name: blog.authorName || "Unknown",
-            id: blog.blog?.author_id || "",
+            avatar_url: blog.authorAvatar || null,
           },
         }));
-
         setBlogs(blogsWithAuthors);
       } catch (err) {
         setError(err.message);
@@ -31,61 +34,68 @@ export default function RazorBlogsLanding() {
         setLoading(false);
       }
     };
-
     fetchBlogs();
   }, []);
 
   if (loading)
     return <p className="text-center text-gray-700 py-10">Loading blogs...</p>;
-
   if (error)
     return (
       <p className="text-center text-red-500 py-10">
         Error loading blogs: {error}
       </p>
     );
-
   if (!blogs || blogs.length === 0)
     return (
       <p className="text-center text-gray-700 py-10">
-        No blogs available at the moment.
+        No blogs available at the moment
       </p>
     );
 
   const featuredBlog = blogs[0];
-  const latestBlogs = blogs.slice(1);
+  const latestBlogs = blogs.slice(1, latestLimit + 1);
 
-  // Categories
   const categories = Array.from(
     new Set(blogs.map((b) => b.blog?.category).filter(Boolean)),
   );
-
   const blogsByCategory = categories.map((cat) => ({
     category: cat,
     blogs: blogs.filter((b) => b.blog?.category === cat).slice(0, 3),
   }));
 
-  // Trending blogs
   const trendingBlogs = [...blogs]
-    .sort((a, b) => b.blog?.readers - a.blog?.readers)
-    .slice(0, 5);
+    .sort((a, b) => (b.blog?.readers || 0) - (a.blog?.readers || 0))
+    .slice(0, trendingLimit);
 
-  // Top Bloggers (by number of blogs)
   const authorMap = {};
   blogs.forEach((b) => {
     const id = b.author.id || "unknown";
-    if (!authorMap[id])
-      authorMap[id] = { name: b.author.name || "Unknown", count: 0 };
+    if (!authorMap[id]) {
+      authorMap[id] = {
+        name: b.author.name || "Unknown",
+        avatar_url: b.author.avatar_url || null,
+        count: 0,
+      };
+    }
     authorMap[id].count += 1;
   });
+
   const topBloggers = Object.entries(authorMap)
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 5);
 
+  const handleLoadMore = () => setLatestLimit(latestLimit + 4);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authorToken");
+    localStorage.removeItem("authorId");
+    navigate("/authors/login");
+  };
+
   return (
     <main className="bg-white text-gray-900 min-h-screen">
       {/* Top Navbar */}
-      <nav className="w-full bg-white/80 backdrop-blur border-b border-gray-200">
+      <nav className="w-full bg-white/90 backdrop-blur border-b border-gray-200 fixed z-50">
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center text-sm">
           <div className="flex space-x-6 font-medium">
             <Link to="/" className="hover:text-[#FFD400] transition">
@@ -99,30 +109,65 @@ export default function RazorBlogsLanding() {
             </Link>
           </div>
           <div className="flex space-x-6 font-medium">
-            <Link to="/login" className="hover:text-[#FFD400] transition">
-              Login
-            </Link>
-            <Link to="/register" className="hover:text-[#FFD400] transition">
-              Register
-            </Link>
+            {token && authorId ? (
+              <>
+                <Link
+                  to="/authors/dashboard"
+                  className="hover:text-[#FFD400] transition"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="hover:text-red-500 transition"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/authors/login"
+                  className="hover:text-[#FFD400] transition"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/authors/register"
+                  className="hover:text-[#FFD400] transition"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white py-20 px-6 md:px-12 text-center">
+      <section className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white py-28 px-6 md:px-12 text-center mt-16">
         <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight tracking-wide">
           Where Stories Grow.
         </h1>
         <p className="text-xl md:text-2xl mb-6 max-w-3xl mx-auto">
           Read, write, and grow with a community of modern storytellers.
         </p>
-        <Link
-          to="#latest"
-          className="inline-block px-8 py-3 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
-        >
-          Explore Blogs
-        </Link>
+        <div className="flex justify-center gap-4 flex-wrap">
+          <Link
+            to="#latest"
+            className="inline-block px-8 py-3 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
+          >
+            Explore Blogs
+          </Link>
+          {!token && (
+            <Link
+              to="/authors/register"
+              className="inline-block px-8 py-3 bg-[#1E40AF] text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+            >
+              Join as Blogger
+            </Link>
+          )}
+        </div>
       </section>
 
       {/* Main Content */}
@@ -135,7 +180,7 @@ export default function RazorBlogsLanding() {
               <img
                 src={featuredBlog.blog.image_url}
                 alt={featuredBlog.blog.title}
-                className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-96 object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/30 flex items-end p-8">
                 <div>
@@ -159,9 +204,12 @@ export default function RazorBlogsLanding() {
                       featuredBlog.blog.created_at,
                     ).toLocaleDateString()}
                   </p>
-                  <p className="text-gray-200 line-clamp-3 mb-4">
-                    {featuredBlog.blog.content}
-                  </p>
+                  <div
+                    className="text-gray-200 line-clamp-3 mb-4"
+                    dangerouslySetInnerHTML={{
+                      __html: featuredBlog.blog.content,
+                    }}
+                  />
                   <Link
                     to={`/blogs/${featuredBlog.blog.id}`}
                     className="inline-block px-6 py-2 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
@@ -188,7 +236,7 @@ export default function RazorBlogsLanding() {
                   <img
                     src={blog.blog.image_url}
                     alt={blog.blog.title}
-                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-48 object-cover object-center transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="p-4">
                     <h3 className="text-xl font-serif font-semibold mb-2 group-hover:text-[#FFD400] transition-colors">
@@ -208,9 +256,12 @@ export default function RazorBlogsLanding() {
                       )}{" "}
                       | {new Date(blog.blog.created_at).toLocaleDateString()}
                     </p>
-                    <p className="text-gray-700 line-clamp-3 mb-2">
-                      {blog.blog.content?.slice(0, 150)}...
-                    </p>
+                    <div
+                      className="text-gray-700 line-clamp-3 mb-2"
+                      dangerouslySetInnerHTML={{
+                        __html: blog.blog.content?.slice(0, 300),
+                      }}
+                    />
                     <span className="text-[#FFD400] font-medium">
                       Read More →
                     </span>
@@ -218,11 +269,19 @@ export default function RazorBlogsLanding() {
                 </Link>
               ))}
             </div>
+            {latestLimit < blogs.length - 1 && (
+              <button
+                onClick={handleLoadMore}
+                className="mt-6 px-6 py-2 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
+              >
+                Load More Blogs
+              </button>
+            )}
           </div>
         </div>
 
         {/* Right Sidebar */}
-        <aside className="space-y-12">
+        <aside className="space-y-12 sticky top-24">
           {/* Categories */}
           <div>
             <h3 className="text-2xl font-serif font-bold mb-4">Categories</h3>
@@ -265,7 +324,7 @@ export default function RazorBlogsLanding() {
                     {b.blog.title.length > 40 && "..."}
                   </Link>
                   <p className="text-gray-500 text-sm">
-                    {b.author.name} | {b.blog.readers} readers
+                    {b.author.name} | {b.blog.readers || 0} readers
                   </p>
                 </li>
               ))}
@@ -281,12 +340,12 @@ export default function RazorBlogsLanding() {
                   {blogger.avatar_url ? (
                     <img
                       src={blogger.avatar_url}
-                      alt={blogger.name}
+                      alt={blogger.name || "Unknown"}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-700">
-                      {blogger.name.charAt(0)}
+                      {(blogger.name || "?").charAt(0)}
                     </div>
                   )}
                   <div>
@@ -294,7 +353,7 @@ export default function RazorBlogsLanding() {
                       to={`/authors/${id}`}
                       className="text-gray-800 font-medium hover:text-[#FFD400] transition"
                     >
-                      {blogger.name}
+                      {blogger.name || "Unknown"}
                     </Link>
                     <p className="text-xs text-gray-500">
                       {blogger.count} blogs • ⭐ Top Blogger
@@ -306,21 +365,23 @@ export default function RazorBlogsLanding() {
           </div>
 
           {/* Register as Blogger */}
-          <div className="p-8 bg-blue-50 rounded-lg text-center shadow-md mb-8">
-            <h2 className="text-2xl font-serif font-bold mb-2">
-              Become a Storyteller
-            </h2>
-            <p className="mb-4 text-gray-700">
-              Share your ideas, insights, and experiences — start your journey
-              with RazorBlog today.
-            </p>
-            <Link
-              to="/register"
-              className="inline-block px-6 py-3 bg-[#1E40AF] text-white font-semibold rounded-lg hover:bg-blue-700 transition"
-            >
-              Register as Blogger →
-            </Link>
-          </div>
+          {!token && (
+            <div className="p-8 bg-blue-50 rounded-lg text-center shadow-md mb-8">
+              <h2 className="text-2xl font-serif font-bold mb-2">
+                Become a Storyteller
+              </h2>
+              <p className="mb-4 text-gray-700">
+                Share your ideas, insights, and experiences — start your journey
+                with RazorBlog today.
+              </p>
+              <Link
+                to="/authors/register"
+                className="inline-block px-6 py-3 bg-[#1E40AF] text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+              >
+                Register as Blogger →
+              </Link>
+            </div>
+          )}
 
           {/* Join WhatsApp Group */}
           <div className="p-8 bg-yellow-50 rounded-lg text-center shadow-md">

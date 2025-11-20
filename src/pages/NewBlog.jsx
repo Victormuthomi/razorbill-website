@@ -1,5 +1,5 @@
 // src/pages/NewBlog.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AUTHOR_URL, BLOG_URL } from "../api";
 
@@ -10,23 +10,11 @@ import {
   AiOutlineEye,
   AiOutlineMenu,
   AiOutlineClose,
-  AiOutlineBold,
-  AiOutlineItalic,
-  AiOutlineUnderline,
-  AiOutlineOrderedList,
-  AiOutlineUnorderedList,
-  AiOutlineLink,
-  AiOutlineDoubleRight, // blockquote
+  AiOutlineCopy,
 } from "react-icons/ai";
 
-// TipTap
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import LinkExtension from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import CodeBlock from "@tiptap/extension-code-block";
-import HorizontalRule from "@tiptap/extension-horizontal-rule";
+import { Editor } from "@toast-ui/react-editor";
+import "@toast-ui/editor/dist/toastui-editor.css";
 
 const categories = [
   "Technology",
@@ -50,16 +38,19 @@ const NewBlog = () => {
   const [category, setCategory] = useState(categories[0]);
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState(""); // live content state
 
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
+  const editorRef = useRef();
+
+  // Fetch author info
   useEffect(() => {
     if (!token || !authorId) {
       navigate("/authors/login");
       return;
     }
-
     const fetchAuthor = async () => {
       try {
         const res = await fetch(`${AUTHOR_URL}/${authorId}`, {
@@ -67,7 +58,7 @@ const NewBlog = () => {
         });
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
-        setAuthor(data);
+        setAuthor(data.author);
       } catch {
         navigate("/authors/login");
       } finally {
@@ -77,39 +68,39 @@ const NewBlog = () => {
     fetchAuthor();
   }, [token, authorId, navigate]);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      LinkExtension,
-      Image,
-      CodeBlock,
-      HorizontalRule,
-    ],
-    content: "",
-    editorProps: {
-      attributes: {
-        className:
-          "w-full min-h-[200px] p-4 bg-black/60 border border-gray-600 rounded-xl focus:outline-none",
-        style: "color: white;", // text visible
-      },
-    },
-  });
+  // Cloudinary upload
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "razorblogs");
 
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!res.ok) throw new Error("Failed to upload image");
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  // Publish blog
   const handlePublish = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const htmlContent = editor.getHTML();
+      let uploadedImageUrl = "";
+      if (imageFile) uploadedImageUrl = await uploadToCloudinary(imageFile);
 
       const body = {
         title,
-        content: htmlContent,
+        content, // saved as HTML
         category,
-        image_url: imageFile
-          ? URL.createObjectURL(imageFile) // preview only
-          : "",
+        image_url: uploadedImageUrl,
       };
 
       const res = await fetch(BLOG_URL, {
@@ -134,22 +125,16 @@ const NewBlog = () => {
     }
   };
 
-  const TB = ({ onClick, icon, active }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`p-2 rounded-lg ${
-        active ? "bg-yellow-400 text-black" : "text-white bg-black/40"
-      } hover:bg-yellow-500 transition`}
-    >
-      {icon}
-    </button>
-  );
-
   if (loadingAuthor)
     return (
       <div className="text-white text-center py-10">Loading author...</div>
     );
+
+  // Copy code block content
+  const copyCode = (code) => {
+    navigator.clipboard.writeText(code);
+    alert("Code copied!");
+  };
 
   return (
     <div className="min-h-screen bg-black/80 flex flex-col md:flex-row">
@@ -219,6 +204,7 @@ const NewBlog = () => {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Form */}
           <form
             onSubmit={handlePublish}
             className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4"
@@ -249,7 +235,7 @@ const NewBlog = () => {
               </select>
             </label>
 
-            {/* Image upload (preview only) */}
+            {/* Image upload */}
             <label className="flex flex-col text-gray-200">
               Blog Image
               <input
@@ -260,79 +246,27 @@ const NewBlog = () => {
               />
             </label>
 
-            {/* Toolbar */}
-            <div className="flex gap-2 flex-wrap bg-black/40 p-3 rounded-xl border border-gray-700">
-              <TB
-                icon={<AiOutlineBold />}
-                active={editor?.isActive("bold")}
-                onClick={() => editor.chain().focus().toggleBold().run()}
-              />
-              <TB
-                icon={<AiOutlineItalic />}
-                active={editor?.isActive("italic")}
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-              />
-              <TB
-                icon={<AiOutlineUnderline />}
-                active={editor?.isActive("underline")}
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-              />
-              <TB
-                icon={<AiOutlineOrderedList />}
-                active={editor?.isActive("orderedList")}
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              />
-              <TB
-                icon={<AiOutlineUnorderedList />}
-                active={editor?.isActive("bulletList")}
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-              />
-              <TB
-                icon={<AiOutlineLink />}
-                onClick={() => {
-                  const url = prompt("Enter URL");
-                  if (url)
-                    editor
-                      .chain()
-                      .focus()
-                      .extendMarkRange("link")
-                      .setLink({ href: url })
-                      .run();
-                }}
-              />
-              <TB
-                icon={<AiOutlineDoubleRight />}
-                active={editor?.isActive("blockquote")}
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              />
-              <TB
-                icon={<span className="font-bold">H1</span>}
-                active={editor?.isActive("heading", { level: 1 })}
-                onClick={() =>
-                  editor.chain().focus().toggleHeading({ level: 1 }).run()
-                }
-              />
-              <TB
-                icon={<span className="font-bold">H2</span>}
-                active={editor?.isActive("heading", { level: 2 })}
-                onClick={() =>
-                  editor.chain().focus().toggleHeading({ level: 2 }).run()
-                }
-              />
-              <TB
-                icon={<span>{"</>"}</span>}
-                active={editor?.isActive("codeBlock")}
-                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              />
-              <TB
-                icon={<span>―</span>}
-                onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              />
-            </div>
-
             {/* Editor */}
             <label className="flex flex-col text-gray-200">Content *</label>
-            <EditorContent editor={editor} />
+            <Editor
+              ref={editorRef}
+              initialValue=""
+              previewStyle="vertical"
+              height="300px"
+              initialEditType="wysiwyg"
+              useCommandShortcut={true}
+              language="en-US"
+              hideModeSwitch={true}
+              toolbarItems={[
+                ["heading", "bold", "italic", "strike"],
+                ["hr", "quote", "code", "link"],
+                ["ul", "ol"],
+                ["image"],
+              ]}
+              onChange={() =>
+                setContent(editorRef.current.getInstance().getHTML())
+              }
+            />
 
             <button
               type="submit"
@@ -359,8 +293,24 @@ const NewBlog = () => {
             )}
             <div
               className="prose prose-invert max-w-none text-white"
-              dangerouslySetInnerHTML={{ __html: editor?.getHTML() }}
+              dangerouslySetInnerHTML={{ __html: content }}
             />
+
+            {/* Add copy button for code blocks */}
+            {content &&
+              Array.from(document.querySelectorAll(".prose pre code")).forEach(
+                (block) => {
+                  if (!block.parentElement.querySelector(".copy-btn")) {
+                    const btn = document.createElement("button");
+                    btn.innerText = "Copy";
+                    btn.className =
+                      "copy-btn absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded text-xs";
+                    btn.onclick = () => copyCode(block.innerText);
+                    block.parentElement.style.position = "relative";
+                    block.parentElement.appendChild(btn);
+                  }
+                },
+              )}
           </div>
         </div>
       </main>

@@ -1,5 +1,5 @@
 // src/pages/EditBlog.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
 import {
@@ -7,23 +7,10 @@ import {
   AiOutlinePlus,
   AiOutlineEdit,
   AiOutlineEye,
-  AiOutlineBold,
-  AiOutlineItalic,
-  AiOutlineUnderline,
-  AiOutlineOrderedList,
-  AiOutlineUnorderedList,
-  AiOutlineLink,
-  AiOutlineCode,
-  AiOutlineHighlight,
 } from "react-icons/ai";
 
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import LinkExtension from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import CodeBlock from "@tiptap/extension-code-block";
-import Blockquote from "@tiptap/extension-blockquote";
+import { Editor } from "@toast-ui/react-editor";
+import "@toast-ui/editor/dist/toastui-editor.css";
 
 const categories = [
   "Technology",
@@ -44,20 +31,20 @@ const EditBlog = () => {
   const [loadingAuthor, setLoadingAuthor] = useState(true);
 
   const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
   const [category, setCategory] = useState(categories[0]);
+  const [imageFile, setImageFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
+  const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
+  const editorRef = useRef();
+
   // Fetch author
   useEffect(() => {
-    if (!token || !authorId) {
-      navigate("/authors/login");
-      return;
-    }
+    if (!token || !authorId) navigate("/authors/login");
 
     const fetchAuthor = async () => {
       try {
@@ -76,27 +63,7 @@ const EditBlog = () => {
     fetchAuthor();
   }, [token, authorId, navigate]);
 
-  // TipTap Editor
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      LinkExtension,
-      Image,
-      CodeBlock,
-      Blockquote,
-    ],
-    content: "",
-    editorProps: {
-      attributes: {
-        className:
-          "w-full min-h-[200px] p-4 bg-black/60 border border-gray-600 rounded-xl focus:outline-none",
-        style: "color: white;", // text visible like NewBlog
-      },
-    },
-  });
-
-  // Fetch blog
+  // Fetch blog data
   useEffect(() => {
     const fetchBlog = async () => {
       try {
@@ -107,40 +74,51 @@ const EditBlog = () => {
         const data = await res.json();
         const b = data.blog;
         setTitle(b.title);
-        setSlug(generateSlug(b.title));
         setCategory(b.category);
         setImageURL(b.image_url || "");
-        if (editor) editor.commands.setContent(b.content);
+        setContent(b.content || "");
+        if (editorRef.current) {
+          editorRef.current.getInstance().setHTML(b.content || "");
+        }
       } catch (err) {
         console.error(err);
         navigate("/authors/dashboard");
       }
     };
-    if (editor) fetchBlog();
-  }, [id, token, navigate, editor]);
+    fetchBlog();
+  }, [id, token, navigate]);
 
-  const generateSlug = (t) =>
-    t
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]+/g, "");
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "razorblogs");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
+      { method: "POST", body: formData },
+    );
+    if (!res.ok) throw new Error("Failed to upload image");
+    const data = await res.json();
+    return data.secure_url;
+  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const htmlContent = editor.getHTML();
-
-    const payload = {
-      title,
-      slug,
-      category,
-      content: htmlContent,
-      image_url: imageURL,
-    };
-
     try {
+      let finalImageURL = imageURL;
+      if (imageFile) finalImageURL = await uploadToCloudinary(imageFile);
+
+      const htmlContent = editorRef.current.getInstance().getHTML();
+
+      const payload = {
+        title,
+        category,
+        content: htmlContent,
+        image_url: finalImageURL,
+      };
+
       const res = await fetch(`${BLOG_URL}/${id}`, {
         method: "PUT",
         headers: {
@@ -149,6 +127,7 @@ const EditBlog = () => {
         },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error("Failed");
       navigate(`/blogs/${id}`);
     } catch (err) {
@@ -158,18 +137,6 @@ const EditBlog = () => {
       setLoading(false);
     }
   };
-
-  const TB = ({ onClick, icon, active }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`p-2 rounded-lg ${
-        active ? "bg-yellow-400 text-black" : "text-white bg-black/40"
-      } hover:bg-yellow-500 transition`}
-    >
-      {icon}
-    </button>
-  );
 
   if (loadingAuthor)
     return (
@@ -214,7 +181,7 @@ const EditBlog = () => {
         </button>
       </aside>
 
-      {/* Main Content */}
+      {/* Main content */}
       <main className="flex-1 p-6 md:p-8">
         <h1 className="text-4xl font-playfair text-yellow-400 font-bold mb-4">
           Edit Blog
@@ -224,6 +191,7 @@ const EditBlog = () => {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Form */}
           <form
             onSubmit={handleUpdate}
             className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4"
@@ -233,10 +201,7 @@ const EditBlog = () => {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setSlug(generateSlug(e.target.value));
-                }}
+                onChange={(e) => setTitle(e.target.value)}
                 className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
                 required
               />
@@ -256,67 +221,35 @@ const EditBlog = () => {
             </label>
 
             <label className="flex flex-col text-gray-200">
-              Image URL
+              Blog Image
               <input
-                type="text"
-                value={imageURL}
-                onChange={(e) => setImageURL(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files[0])}
                 className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
               />
             </label>
 
-            {/* Toolbar */}
-            <div className="flex gap-2 flex-wrap bg-black/40 p-3 rounded-xl border border-gray-700">
-              <TB
-                icon={<AiOutlineBold />}
-                active={editor?.isActive("bold")}
-                onClick={() => editor.chain().focus().toggleBold().run()}
-              />
-              <TB
-                icon={<AiOutlineItalic />}
-                active={editor?.isActive("italic")}
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-              />
-              <TB
-                icon={<AiOutlineUnderline />}
-                active={editor?.isActive("underline")}
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-              />
-              <TB
-                icon={<AiOutlineOrderedList />}
-                active={editor?.isActive("orderedList")}
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              />
-              <TB
-                icon={<AiOutlineUnorderedList />}
-                active={editor?.isActive("bulletList")}
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-              />
-              <TB
-                icon={<AiOutlineLink />}
-                onClick={() => {
-                  const url = prompt("Enter URL");
-                  if (url)
-                    editor
-                      .chain()
-                      .focus()
-                      .extendMarkRange("link")
-                      .setLink({ href: url })
-                      .run();
-                }}
-              />
-              <TB
-                icon={<AiOutlineCode />}
-                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              />
-              <TB
-                icon={<AiOutlineHighlight />}
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              />
-            </div>
-
             <label className="flex flex-col text-gray-200">Content *</label>
-            <EditorContent editor={editor} />
+            <Editor
+              ref={editorRef}
+              initialValue={content}
+              previewStyle="vertical"
+              height="300px"
+              initialEditType="wysiwyg"
+              useCommandShortcut={true}
+              language="en-US"
+              hideModeSwitch={true}
+              toolbarItems={[
+                ["heading", "bold", "italic", "strike"],
+                ["hr", "quote", "code", "link"],
+                ["ul", "ol"],
+                ["image"],
+              ]}
+              onChange={() =>
+                setContent(editorRef.current.getInstance().getHTML())
+              }
+            />
 
             <button
               type="submit"
@@ -329,20 +262,26 @@ const EditBlog = () => {
 
           {/* Live Preview */}
           <div className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4">
-            {imageURL && (
+            {imageFile ? (
+              <img
+                src={URL.createObjectURL(imageFile)}
+                alt="Preview"
+                className="w-full rounded-xl object-cover max-h-64"
+              />
+            ) : imageURL ? (
               <img
                 src={imageURL}
                 alt="Preview"
                 className="w-full rounded-xl object-cover max-h-64"
               />
-            )}
+            ) : null}
             <h3 className="text-white text-xl font-semibold">{title}</h3>
             {category && (
               <span className="text-gray-400 text-sm">{category}</span>
             )}
             <div
               className="prose prose-invert max-w-none text-white"
-              dangerouslySetInnerHTML={{ __html: editor?.getHTML() }}
+              dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
         </div>
