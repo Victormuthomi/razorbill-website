@@ -124,11 +124,11 @@ const AuthorRegister = () => {
           />
 
           {/* Phone with country code */}
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2">
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="px-4 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full sm:w-auto px-4 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             >
               {countryCodes.map((c) => (
                 <option key={c.code} value={c.code}>

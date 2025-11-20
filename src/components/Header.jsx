@@ -7,6 +7,7 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between p-4 ml-8 bg-black/60 text-white shadow-lg relative">
+      {/* Logo */}
       <div className="flex items-center">
         <Link to="/" className="flex items-center">
           <img src={logo} alt="Razorbill Logo" className="h-10 w-auto mr-2" />
@@ -17,69 +18,69 @@ export default function Header() {
       </div>
 
       {/* Desktop Menu */}
-      <nav className="space-x-6 hidden md:flex mr-8">
-        <Link to="/" className="font-playfair  hover:underline">
+      <nav className="space-x-6 hidden md:flex mr-8 font-playfair">
+        <Link to="/" className="hover:underline">
           Home
         </Link>
-        <Link to="/matches" className="font-playfair  hover:underline">
-          Matches
+        <Link to="/matches" className="hover:underline">
+          RazorSports
         </Link>
-        <Link to="/sportgpt" className="font-playfair hover:underline">
-          SportGPT
+        <Link to="/sportgpt" className="hover:underline">
+          RazorGPT
         </Link>
-        <Link to="/results" className="font-playfair hover:underline">
-          Results
+        <Link to="/movies" className="hover:underline">
+          RazorMovies
         </Link>
-        <Link to="/movies" className="font-playfair hover:underline">
-          Movies
+        <Link to="/blogs" className="hover:underline">
+          RazorBlogs
         </Link>
       </nav>
 
-      {/* Mobile Hamburger Menu */}
+      {/* Mobile Hamburger Button */}
       <div className="md:hidden">
         <button onClick={() => setMenuOpen(!menuOpen)} className="text-2xl">
           {menuOpen ? "✖" : "☰"}
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Slide-Out Menu */}
       {menuOpen && (
         <div className="absolute top-16 right-0 w-full bg-black/80 text-white p-4 md:hidden z-50">
-          <nav className="flex flex-col space-y-4 items-center">
+          <nav className="flex flex-col space-y-4 items-center font-playfair">
             <Link
               to="/"
-              className="hover:underline"
               onClick={() => setMenuOpen(false)}
+              className="hover:underline"
             >
               Home
             </Link>
             <Link
               to="/matches"
-              className="hover:underline"
               onClick={() => setMenuOpen(false)}
+              className="hover:underline"
             >
-              Matches
+              RazorSports
             </Link>
             <Link
               to="/sportgpt"
-              className="hover:underline"
               onClick={() => setMenuOpen(false)}
-            >
-              SportGPT
-            </Link>
-            <Link
-              to="/results"
               className="hover:underline"
-              onClick={() => setMenuOpen(false)}
             >
-              Results
+              RazorGPT
             </Link>
             <Link
               to="/movies"
-              className="hover:underline"
               onClick={() => setMenuOpen(false)}
+              className="hover:underline"
             >
-              Movies
+              RazorMovies
+            </Link>
+            <Link
+              to="/blogs"
+              onClick={() => setMenuOpen(false)}
+              className="hover:underline"
+            >
+              RazorBlogs
             </Link>
           </nav>
         </div>

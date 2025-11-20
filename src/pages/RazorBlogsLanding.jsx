@@ -146,12 +146,19 @@ export default function RazorBlogsLanding() {
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white py-28 px-6 md:px-12 text-center mt-16">
+        {/* Brand Label */}
+        <div className="text-sm text-yellow-400 uppercase mb-2 tracking-wide">
+          RazorBlogs
+        </div>
+
         <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight tracking-wide">
           Where Stories Grow.
         </h1>
+
         <p className="text-xl md:text-2xl mb-6 max-w-3xl mx-auto">
           Read, write, and grow with a community of modern storytellers.
         </p>
+
         <div className="flex justify-center gap-4 flex-wrap">
           <Link
             to="#latest"
@@ -169,7 +176,6 @@ export default function RazorBlogsLanding() {
           )}
         </div>
       </section>
-
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-6 md:px-12 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Left Column: Featured + Latest Blogs */}
