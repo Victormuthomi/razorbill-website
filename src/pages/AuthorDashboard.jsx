@@ -39,33 +39,30 @@ const AuthorsDashboard = () => {
         });
         if (!authorRes.ok) throw new Error("Failed to fetch author");
         const data = await authorRes.json();
-        setAuthor(data.author); // unwrap nested author object
+        setAuthor(data.author);
 
-        // Fetch all blogs
-        const blogsRes = await fetch(`${BLOG_URL}`, {
+        // Fetch blogs for this author only
+        const blogsRes = await fetch(`${BLOG_URL}/author/${authorId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const blogsData = blogsRes.ok ? await blogsRes.json() : [];
 
-        // Filter to only include blogs of this author
-        const authorBlogs = blogsData.filter(
-          (item) => item.blog.author_id === authorId,
-        );
+        // Sort by readers descending
+        const sortedBlogs = blogsData
+          .map((item) => ({
+            id: item.blog.id,
+            title: item.blog.title,
+            content: item.blog.content,
+            image_url: item.blog.image_url,
+            category: item.blog.category,
+            readers: item.blog.readers || 0,
+            created_at: item.blog.created_at,
+            updated_at: item.blog.updated_at,
+            authorName: item.authorName || data.author.name || "Author",
+          }))
+          .sort((a, b) => b.readers - a.readers);
 
-        // Normalize blogs for easier rendering
-        const normalizedBlogs = authorBlogs.map((item) => ({
-          id: item.blog.id,
-          title: item.blog.title,
-          content: item.blog.content,
-          image_url: item.blog.image_url,
-          category: item.blog.category,
-          readers: item.blog.readers,
-          created_at: item.blog.created_at,
-          updated_at: item.blog.updated_at,
-          authorName: item.authorName || data.author.name || "Author",
-        }));
-
-        setBlogs(normalizedBlogs);
+        setBlogs(sortedBlogs);
       } catch (err) {
         console.error(err);
         localStorage.removeItem("authorToken");
@@ -95,7 +92,6 @@ const AuthorsDashboard = () => {
       });
       if (!res.ok) throw new Error("Failed to delete blog");
 
-      // Remove deleted blog from state
       setBlogs((prev) => prev.filter((b) => b.id !== blogId));
     } catch (err) {
       console.error(err);
@@ -109,9 +105,7 @@ const AuthorsDashboard = () => {
     );
 
   const isProfileComplete = author?.name && author?.phone && author?.email;
-
-  // Calculate total views
-  const totalViews = blogs.reduce((sum, b) => sum + (b.readers || 0), 0);
+  const totalViews = blogs.reduce((sum, b) => sum + b.readers, 0);
 
   return (
     <div className="min-h-screen bg-black/80 flex flex-col md:flex-row">
@@ -191,13 +185,18 @@ const AuthorsDashboard = () => {
             )}
           </div>
 
-          {/* Logout top-right */}
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-red-600 transition font-semibold mt-4 sm:mt-0"
           >
             <AiOutlineLogout /> Logout
           </button>
+        </div>
+
+        {/* Note about platform */}
+        <div className="mb-4 text-gray-300 italic text-sm">
+          ⚡ RazorBlogs is free to use, but authors are responsible for
+          promoting their own blogs and content.
         </div>
 
         {/* Quick Stats */}
@@ -241,9 +240,12 @@ const AuthorsDashboard = () => {
                     {blog.title}
                   </h3>
                   <div
-                    className="text-gray-200 text-sm mb-4 line-clamp-3"
+                    className="text-gray-200 text-sm mb-2 line-clamp-3"
                     dangerouslySetInnerHTML={{ __html: blog.content }}
                   />
+                  <div className="text-gray-400 text-xs">
+                    👁️ Readers: {blog.readers}
+                  </div>
                 </div>
                 <div className="flex justify-between items-center mt-auto">
                   <div className="flex gap-2">
@@ -275,7 +277,6 @@ const AuthorsDashboard = () => {
           </div>
         )}
 
-        {/* Footer */}
         <div className="mt-8 text-gray-400 text-sm italic">
           💡 Remember to keep your profile updated. <br />⚡ You can manage all
           your blogs here.

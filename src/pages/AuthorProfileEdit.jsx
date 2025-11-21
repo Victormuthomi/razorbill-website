@@ -24,6 +24,7 @@ const AuthorProfileEdit = () => {
     email: "",
     phone: "",
     avatar_url: "",
+    bio: "",
   });
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -49,24 +50,21 @@ const AuthorProfileEdit = () => {
       const a = data.author || data;
 
       // Split phone into country code + number if possible
-      if (a.phone?.startsWith("+")) {
-        const code = a.phone.slice(0, a.phone.length - 9);
-        const number = a.phone.slice(-9);
-        setCountryCode(code);
-        setAuthor({
-          name: a.name || "",
-          email: a.email || "",
-          phone: number || "",
-          avatar_url: a.avatar_url || "",
-        });
-      } else {
-        setAuthor({
-          name: a.name || "",
-          email: a.email || "",
-          phone: a.phone || "",
-          avatar_url: a.avatar_url || "",
-        });
+      let code = "+254";
+      let number = a.phone || "";
+      if (a.phone?.startsWith("+") && a.phone.length > 3) {
+        code = a.phone.slice(0, a.phone.length - 9);
+        number = a.phone.slice(-9);
       }
+
+      setCountryCode(code);
+      setAuthor({
+        name: a.name || "",
+        email: a.email || "",
+        phone: number,
+        avatar_url: a.avatar_url || "",
+        bio: a.bio || "",
+      });
     } catch (err) {
       console.error(err);
       setError("Error fetching profile data.");
@@ -116,6 +114,7 @@ const AuthorProfileEdit = () => {
         email: author.email,
         phone: countryCode + author.phone,
         avatar_url: avatarUrl,
+        bio: author.bio,
       };
       if (password) body.password = password;
 
@@ -255,6 +254,17 @@ const AuthorProfileEdit = () => {
               required
             />
           </div>
+
+          {/* Bio */}
+          <textarea
+            placeholder="Short Bio"
+            value={author.bio}
+            onChange={(e) =>
+              setAuthor((prev) => ({ ...prev, bio: e.target.value }))
+            }
+            className="w-full px-5 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            rows={4}
+          />
 
           {/* Password */}
           <div className="relative">

@@ -90,6 +90,9 @@ const router = createBrowserRouter(
       <Route path="/authors/edit/:id" element={<AuthorProfileEdit />} />
       <Route path="/authors/:id" element={<AuthorProfile />} />
 
+      {/* Public author profile */}
+      <Route path="/authors/public/:id" element={<AuthorProfile />} />
+
       <Route path="/authors/dashboard" element={<AuthorDashboard />} />
     </Route>,
   ),
