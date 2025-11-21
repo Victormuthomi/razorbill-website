@@ -9,6 +9,7 @@ export default function BlogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
+  const [allBlogs, setAllBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [comments, setComments] = useState([]);
@@ -33,6 +34,18 @@ export default function BlogDetail() {
     }
   };
 
+  const fetchAllBlogs = async () => {
+    try {
+      const res = await fetch(BLOG_URL);
+      if (!res.ok) throw new Error("Failed to fetch blogs.");
+      const data = await res.json();
+      setAllBlogs(data);
+    } catch (err) {
+      console.error(err);
+      setAllBlogs([]);
+    }
+  };
+
   const fetchComments = async () => {
     try {
       const res = await fetch(`${COMMENTS_URL}/${id}`);
@@ -47,6 +60,7 @@ export default function BlogDetail() {
 
   useEffect(() => {
     fetchBlog();
+    fetchAllBlogs();
     fetchComments();
   }, [id]);
 
@@ -81,8 +95,8 @@ export default function BlogDetail() {
     }
   };
 
-  const toggleDashboardLink = () => {
-    return token && authorId
+  const toggleDashboardLink = () =>
+    token && authorId
       ? [
           <Link
             key="dashboard"
@@ -119,14 +133,19 @@ export default function BlogDetail() {
             Register
           </Link>,
         ];
-  };
 
-  // Related blogs: top 3 by readers, excluding current blog
-  const relatedBlogs =
-    (blog.allBlogs || [])
+  // Related blogs: same category first, fallback to trending
+  const relatedBlogs = (() => {
+    const byCategory = allBlogs.filter(
+      (b) =>
+        b.blog.id !== blog.blog.id && b.blog.category === blog.blog.category,
+    );
+    if (byCategory.length > 0) return byCategory.slice(0, 3);
+    return allBlogs
       .filter((b) => b.blog.id !== blog.blog.id)
       .sort((a, b) => (b.blog.readers || 0) - (a.blog.readers || 0))
-      .slice(0, 3) || [];
+      .slice(0, 3);
+  })();
 
   return (
     <main
@@ -143,9 +162,6 @@ export default function BlogDetail() {
             </Link>
             <Link to="/blogs" className="hover:text-[#FFD400] transition">
               Blogs
-            </Link>
-            <Link to="/authors" className="hover:text-[#FFD400] transition">
-              Authors
             </Link>
           </div>
           <div className="flex space-x-6 font-medium">
@@ -190,7 +206,7 @@ export default function BlogDetail() {
         <article className="lg:col-span-2 space-y-12">
           {/* Blog content */}
           <div
-            className={`prose max-w-none md:prose-lg lg:prose-xl [&_ol]:list-decimal [&_ul]:list-disc ${
+            className={`prose max-w-none md:prose-lg lg:prose-xl [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-6 [&_li]:my-2 ${
               readingMode ? "prose-invert text-white" : "text-gray-900"
             }`}
             dangerouslySetInnerHTML={{ __html: blog.blog.content }}
@@ -249,7 +265,6 @@ export default function BlogDetail() {
           {/* Comments */}
           <div className="mt-12 space-y-6">
             <h3 className="text-2xl font-serif font-bold mb-6">Comments</h3>
-
             {comments.length === 0 ? (
               <p className="text-gray-500 italic">No comments yet.</p>
             ) : (
@@ -282,7 +297,6 @@ export default function BlogDetail() {
                 ))}
               </ul>
             )}
-
             <form onSubmit={postComment} className="mt-6 space-y-4">
               <input
                 type="text"
@@ -309,25 +323,37 @@ export default function BlogDetail() {
 
         {/* Sidebar */}
         <aside className="space-y-12 lg:sticky lg:top-24">
-          {/* Related Blogs */}
+          {/* Related / Trending Blogs */}
           <div>
             <h3 className="text-2xl font-serif font-bold mb-4">
-              Related Blogs
+              Related / Trending Blogs
             </h3>
             <ul className="space-y-4">
               {relatedBlogs.map((b) => (
                 <li key={b.blog.id} className="flex items-center gap-2">
-                  <img
-                    src={b.blog.image_url || "/placeholder.jpg"}
-                    alt={b.blog.title}
-                    className="w-12 h-12 object-cover rounded"
-                  />
-                  <Link
-                    to={`/blogs/${b.blog.id}`}
-                    className="text-[#FFD400] hover:underline text-sm line-clamp-1"
-                  >
-                    {b.blog.title || "Untitled Blog"}
-                  </Link>
+                  {b.blog.image_url ? (
+                    <img
+                      src={b.blog.image_url}
+                      alt={b.blog.title}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded bg-gray-300 flex items-center justify-center text-xs">
+                      ?
+                    </div>
+                  )}
+                  <div>
+                    <Link
+                      to={`/blogs/${b.blog.id}`}
+                      className="block text-[#FFD400] hover:underline font-medium text-sm line-clamp-2"
+                    >
+                      {b.blog.title}
+                    </Link>
+                    <p className="text-gray-500 text-xs">
+                      {b.authorName || "Unknown Author"} • {b.blog.readers || 0}{" "}
+                      readers
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -13,20 +13,43 @@ export default function RazorBlogsLanding() {
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
+  const [authorCache, setAuthorCache] = useState({});
+
   useEffect(() => {
+    const fetchAuthor = async (id) => {
+      if (authorCache[id]) return authorCache[id];
+      try {
+        const res = await fetch(`${AUTHOR_URL}/public/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch author");
+        const data = await res.json();
+        const author = data.author || { name: "Unknown", avatar_url: null };
+        setAuthorCache((prev) => ({ ...prev, [id]: author }));
+        return author;
+      } catch {
+        return { name: "Unknown", avatar_url: null };
+      }
+    };
+
     const fetchBlogs = async () => {
       try {
         const res = await fetch(BLOG_URL);
         if (!res.ok) throw new Error("Failed to fetch blogs.");
         const data = await res.json();
-        const blogsWithAuthors = data.map((blog) => ({
-          ...blog,
-          author: {
-            id: blog.blog?.author_id || "unknown",
-            name: blog.authorName || "Unknown",
-            avatar_url: blog.authorAvatar || null,
-          },
-        }));
+
+        const blogsWithAuthors = await Promise.all(
+          data.map(async (blog) => {
+            const authorData = await fetchAuthor(blog.blog?.author_id);
+            return {
+              ...blog,
+              author: {
+                id: blog.blog?.author_id || "unknown",
+                name: authorData.name || "Unknown",
+                avatar_url: authorData.avatar_url || null,
+              },
+            };
+          })
+        );
+
         setBlogs(blogsWithAuthors);
       } catch (err) {
         setError(err.message);
@@ -34,6 +57,7 @@ export default function RazorBlogsLanding() {
         setLoading(false);
       }
     };
+
     fetchBlogs();
   }, []);
 
@@ -56,7 +80,7 @@ export default function RazorBlogsLanding() {
   const latestBlogs = blogs.slice(1, latestLimit + 1);
 
   const categories = Array.from(
-    new Set(blogs.map((b) => b.blog?.category).filter(Boolean)),
+    new Set(blogs.map((b) => b.blog?.category).filter(Boolean))
   );
   const blogsByCategory = categories.map((cat) => ({
     category: cat,
@@ -104,9 +128,6 @@ export default function RazorBlogsLanding() {
             <Link to="/blogs" className="hover:text-[#FFD400] transition">
               Blogs
             </Link>
-            <Link to="/authors" className="hover:text-[#FFD400] transition">
-              Authors
-            </Link>
           </div>
           <div className="flex space-x-6 font-medium">
             {token && authorId ? (
@@ -146,19 +167,15 @@ export default function RazorBlogsLanding() {
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white py-28 px-6 md:px-12 text-center mt-16">
-        {/* Brand Label */}
         <div className="text-sm text-yellow-400 uppercase mb-2 tracking-wide">
           RazorBlogs
         </div>
-
         <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight tracking-wide">
           Where Stories Grow.
         </h1>
-
         <p className="text-xl md:text-2xl mb-6 max-w-3xl mx-auto">
           Read, write, and grow with a community of modern storytellers.
         </p>
-
         <div className="flex justify-center gap-4 flex-wrap">
           <Link
             to="#latest"
@@ -176,6 +193,7 @@ export default function RazorBlogsLanding() {
           )}
         </div>
       </section>
+
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-6 md:px-12 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Left Column: Featured + Latest Blogs */}
@@ -193,23 +211,26 @@ export default function RazorBlogsLanding() {
                   <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-2 group-hover:underline transition">
                     {featuredBlog.blog.title}
                   </h2>
-                  <p className="text-gray-200 mb-4">
-                    By{" "}
-                    {featuredBlog.author.id ? (
-                      <Link
-                        to={`/authors/${featuredBlog.author.id}`}
-                        className="underline hover:text-[#FFD400] transition"
-                      >
-                        {featuredBlog.author.name}
-                      </Link>
+                  <div className="flex items-center gap-2 text-gray-200 mb-4">
+                    {featuredBlog.author.avatar_url ? (
+                      <img
+                        src={featuredBlog.author.avatar_url}
+                        alt={featuredBlog.author.name}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
                     ) : (
-                      featuredBlog.author.name
-                    )}{" "}
-                    |{" "}
-                    {new Date(
-                      featuredBlog.blog.created_at,
-                    ).toLocaleDateString()}
-                  </p>
+                      <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                        {featuredBlog.author.name?.[0] || "?"}
+                      </div>
+                    )}
+                    <Link
+                      to={`/authors/${featuredBlog.author.id}`}
+                      className="underline hover:text-[#FFD400] transition"
+                    >
+                      {featuredBlog.author.name}
+                    </Link>{" "}
+                    | {new Date(featuredBlog.blog.created_at).toLocaleDateString()}
+                  </div>
                   <div
                     className="text-gray-200 line-clamp-3 mb-4"
                     dangerouslySetInnerHTML={{
@@ -248,20 +269,26 @@ export default function RazorBlogsLanding() {
                     <h3 className="text-xl font-serif font-semibold mb-2 group-hover:text-[#FFD400] transition-colors">
                       {blog.blog.title}
                     </h3>
-                    <p className="text-gray-600 text-sm mb-2">
-                      By{" "}
-                      {blog.author.id ? (
-                        <Link
-                          to={`/authors/${blog.author.id}`}
-                          className="underline hover:text-[#FFD400] transition"
-                        >
-                          {blog.author.name}
-                        </Link>
+                    <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
+                      {blog.author.avatar_url ? (
+                        <img
+                          src={blog.author.avatar_url}
+                          alt={blog.author.name}
+                          className="w-5 h-5 rounded-full object-cover"
+                        />
                       ) : (
-                        blog.author.name
-                      )}{" "}
+                        <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                          {blog.author.name?.[0] || "?"}
+                        </div>
+                      )}
+                      <Link
+                        to={`/authors/${blog.author.id}`}
+                        className="underline hover:text-[#FFD400] transition"
+                      >
+                        {blog.author.name}
+                      </Link>{" "}
                       | {new Date(blog.blog.created_at).toLocaleDateString()}
-                    </p>
+                    </div>
                     <div
                       className="text-gray-700 line-clamp-3 mb-2"
                       dangerouslySetInnerHTML={{
@@ -321,17 +348,30 @@ export default function RazorBlogsLanding() {
             <h3 className="text-2xl font-serif font-bold mb-4">Trending</h3>
             <ul className="space-y-4">
               {trendingBlogs.map((b) => (
-                <li key={b.blog.id}>
-                  <Link
-                    to={`/blogs/${b.blog.id}`}
-                    className="block hover:underline text-gray-800"
-                  >
-                    {b.blog.title.slice(0, 40)}
-                    {b.blog.title.length > 40 && "..."}
-                  </Link>
-                  <p className="text-gray-500 text-sm">
-                    {b.author.name} | {b.blog.readers || 0} readers
-                  </p>
+                <li key={b.blog.id} className="flex items-center gap-2">
+                  {b.author.avatar_url ? (
+                    <img
+                      src={b.author.avatar_url}
+                      alt={b.author.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                      {b.author.name?.[0] || "?"}
+                    </div>
+                  )}
+                  <div>
+                    <Link
+                      to={`/blogs/${b.blog.id}`}
+                      className="block hover:underline text-gray-800"
+                    >
+                      {b.blog.title.slice(0, 40)}
+                      {b.blog.title.length > 40 && "..."}
+                    </Link>
+                    <p className="text-gray-500 text-sm">
+                      {b.author.name} | {b.blog.readers || 0} readers
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -412,3 +452,4 @@ export default function RazorBlogsLanding() {
     </main>
   );
 }
+
