@@ -1,0 +1,29 @@
+workflows:
+  build_apk:
+    name: Build RazorBill APK
+    max_build_duration: 60
+    environment:
+      vars:
+        NODE_VERSION: 20
+      flutter: false
+      xcode: false
+      android:
+        build_tools: 34.0.0
+        ndk: 25.2.9519653
+        jdk: 17
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Build web assets
+        script: |
+          npm run build
+      - name: Add Capacitor Android
+        script: |
+          npx cap sync android
+      - name: Build Android APK
+        script: |
+          cd android
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
