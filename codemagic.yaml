@@ -4,12 +4,6 @@ workflows:
     environment:
       java: openjdk-17
       node: 20
-      android:
-        components:
-          - build-tools-34.0.0
-          - platform-tools
-          - platforms;android-34
-          - cmdline-tools;latest
     scripts:
       - npm ci
       - npm run build
