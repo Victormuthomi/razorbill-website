@@ -277,17 +277,25 @@ const MatchDetails = () => {
                   className="flex items-center bg-black/60 border border-white/15 p-3 rounded-xl transition hover:border-white/40"
                 >
                   <img
-                    src={`https://razorbill-backend.onrender.com/api/images/badge/${match.teams.home.badge}.webp`}
-                    alt={match.teams.home.name}
+                    src={
+                      match.teams?.home?.badge
+                        ? `${import.meta.env.VITE_API_BASE_URL}/api/images/badge/${match.teams.home.badge}.webp`
+                        : "/default-badge.webp"
+                    }
+                    alt={match.teams?.home?.name || "Home"}
                     className="h-10 w-10 rounded-full object-cover"
                   />
+
                   <div className="ml-3 text-white text-sm">
-                    {match.teams.home.name} vs {match.teams.away.name}
+                    {match.teams?.home?.name || "Home"} vs{" "}
+                    {match.teams?.away?.name || "Away"}
                     <p className="text-gray-300 text-xs mt-1">
-                      {new Date(match.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {match.date
+                        ? new Date(match.date).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
                     </p>
                   </div>
                 </Link>
