@@ -4,7 +4,6 @@ workflows:
     max_build_duration: 60
     environment:
       node: "20" # Node version as a string
-      jdk: "17" # JDK version as a string
     scripts:
       - name: Install dependencies
         script: |
