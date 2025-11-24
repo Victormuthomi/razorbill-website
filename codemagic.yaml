@@ -1,13 +1,21 @@
 workflows:
-  android-workflow:
-    name: Android Build
+  build_apk:
+    name: Build RazorBill APK
+    max_build_duration: 60
     environment:
-      java: openjdk-17
-      node: 20
+      java: "17"
+      node: "20"
     scripts:
-      - npm ci
-      - npm run build
-      - npx cap sync android
-      - cd android && ./gradlew assembleDebug
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Install dependencies
+        script: npm ci
+      - name: Build web assets
+        script: npm run build
+      - name: Sync Capacitor
+        script: npx cap sync android
+      - name: Build APK
+        script: cd android && ./gradlew assembleDebug
     artifacts:
       - android/app/build/outputs/**/*.apk
