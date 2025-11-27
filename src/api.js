@@ -1,5 +1,5 @@
 // src/api.js
-const BASE_URL = "https://razorbill-backend.onrender.com/api";
+const BASE_URL = "http://localhost:3000";
 
 //for local host
 //export const BLOG_URL = "http://localhost:8080/blogs";
