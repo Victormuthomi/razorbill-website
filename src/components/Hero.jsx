@@ -68,8 +68,9 @@ export default function Hero({ menuOpen }) {
           className="mt-0 md:mt-10 w-26 md:w-52 mx-auto transition-transform duration-500 animate-bounce hover:animate-none"
         />
 
-        {/* CTA Button */}
-        <div className="mt-8 md:mt-6">
+        {/* CTA Buttons */}
+        <div className="mt-8 md:mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Get Started */}
           <a
             href="/matches"
             className="px-6 py-3 rounded-full bg-white text-black hover:bg-white/10 hover:text-white 
@@ -78,9 +79,18 @@ export default function Hero({ menuOpen }) {
           >
             Get Started
           </a>
+
+          {/* Download App */}
+          <a
+            href="https://razorsports-backend.vercel.app/razorbill.apk"
+            download
+            className="px-6 py-3 rounded-full bg-yellow-400 text-black hover:bg-yellow-300 
+            focus:bg-yellow-300 focus:ring-2 focus:ring-yellow-500 font-medium transition duration-200"
+          >
+            Download App
+          </a>
         </div>
       </div>
     </section>
   );
 }
-``;
