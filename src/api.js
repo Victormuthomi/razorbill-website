@@ -3,7 +3,7 @@
 //const BASE_URL = "http://localhost:3000";
 
 //for prod
-const BASE_URL = "https://razorsports-backend.vercel.app/";
+const BASE_URL = "https://razorsports-backend.vercel.app";
 
 //for local host
 //export const BLOG_URL = "http://localhost:8080/blogs";
