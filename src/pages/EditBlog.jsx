@@ -1,4 +1,3 @@
-// src/pages/EditBlog.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
@@ -16,6 +15,7 @@ import {
   convertFromRaw,
   convertToRaw,
   ContentState,
+  Modifier,
 } from "draft-js";
 import draftToHtml from "draftjs-to-html";
 import htmlToDraft from "html-to-draftjs";
@@ -118,6 +118,30 @@ const EditBlog = () => {
 
   const toggleBlockType = (blockType) => {
     setEditorState(RichUtils.toggleBlockType(editorState, blockType));
+  };
+
+  // Prompt for link
+  const promptForLink = () => {
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      const url = window.prompt("Enter the URL");
+      if (!url) return;
+      const contentState = editorState.getCurrentContent();
+      const contentStateWithEntity = contentState.createEntity(
+        "LINK",
+        "MUTABLE",
+        { url }
+      );
+      const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+      const newEditorState = EditorState.set(editorState, {
+        currentContent: contentStateWithEntity,
+      });
+      setEditorState(
+        RichUtils.toggleLink(newEditorState, selection, entityKey)
+      );
+    } else {
+      alert("Please select text to add a link.");
+    }
   };
 
   // Upload image
@@ -324,6 +348,13 @@ const EditBlog = () => {
               >
                 H3
               </button>
+              <button
+                type="button"
+                onClick={promptForLink}
+                className="px-2 py-1 bg-gray-700 text-white rounded underline text-blue-400"
+              >
+                Link
+              </button>
             </div>
 
             <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[200px] p-2 text-white">
@@ -363,7 +394,7 @@ const EditBlog = () => {
             <span className="text-gray-400 text-sm">{category}</span>
 
             <div
-              className="prose prose-invert max-w-none text-white [&_a]:text-blue-400 [&_a]:hover:underline [&_h1]:mt-6 [&_h2]:mt-5 [&_h3]:mt-4 [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-6"
+              className="prose prose-invert max-w-none text-white"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
