@@ -1,3 +1,4 @@
+// src/pages/EditBlog.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
@@ -94,7 +95,7 @@ const EditBlog = () => {
           const { contentBlocks, entityMap } = blocksFromHtml;
           const contentState = ContentState.createFromBlockArray(
             contentBlocks,
-            entityMap,
+            entityMap
           );
           setEditorState(EditorState.createWithContent(contentState));
         }
@@ -127,7 +128,7 @@ const EditBlog = () => {
 
     const res = await fetch(
       "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
-      { method: "POST", body: formData },
+      { method: "POST", body: formData }
     );
     if (!res.ok) throw new Error("Failed to upload image");
     const data = await res.json();
@@ -259,32 +260,32 @@ const EditBlog = () => {
             </label>
 
             {/* Draft.js Toolbar */}
-            <div className="flex gap-2 mb-1">
+            <div className="flex gap-2 mb-1 flex-wrap">
               <button
                 type="button"
                 onClick={() => toggleInlineStyle("BOLD")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold"
               >
                 B
               </button>
               <button
                 type="button"
                 onClick={() => toggleInlineStyle("ITALIC")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
+                className="px-2 py-1 bg-gray-700 text-white rounded italic"
               >
                 I
               </button>
               <button
                 type="button"
                 onClick={() => toggleInlineStyle("UNDERLINE")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
+                className="px-2 py-1 bg-gray-700 text-white rounded underline"
               >
                 U
               </button>
               <button
                 type="button"
                 onClick={() => toggleInlineStyle("CODE")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
+                className="px-2 py-1 bg-gray-700 text-white rounded font-mono"
               >
                 Code
               </button>
@@ -301,6 +302,27 @@ const EditBlog = () => {
                 className="px-2 py-1 bg-gray-700 text-white rounded"
               >
                 OL
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("header-one")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-lg"
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("header-two")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-md"
+              >
+                H2
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("header-three")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-sm"
+              >
+                H3
               </button>
             </div>
 
@@ -341,7 +363,7 @@ const EditBlog = () => {
             <span className="text-gray-400 text-sm">{category}</span>
 
             <div
-              className="prose prose-invert max-w-none text-white"
+              className="prose prose-invert max-w-none text-white [&_a]:text-blue-400 [&_a]:hover:underline [&_h1]:mt-6 [&_h2]:mt-5 [&_h3]:mt-4 [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-6"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
