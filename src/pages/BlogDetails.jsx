@@ -64,6 +64,25 @@ export default function BlogDetail() {
     fetchComments();
   }, [id]);
 
+  // Smooth scrolling for in-page anchor links
+  useEffect(() => {
+    const handleAnchorClick = (e) => {
+      if (
+        e.target.tagName === "A" &&
+        e.target.getAttribute("href")?.startsWith("#")
+      ) {
+        e.preventDefault();
+        const targetId = e.target.getAttribute("href").slice(1);
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    };
+    document.addEventListener("click", handleAnchorClick);
+    return () => document.removeEventListener("click", handleAnchorClick);
+  }, []);
+
   if (loading) return <p className="text-center py-10">Loading blog...</p>;
   if (error) return <p className="text-center text-red-500 py-10">{error}</p>;
   if (!blog) return <p className="text-center py-10">Blog not found.</p>;
@@ -138,7 +157,7 @@ export default function BlogDetail() {
   const relatedBlogs = (() => {
     const byCategory = allBlogs.filter(
       (b) =>
-        b.blog.id !== blog.blog.id && b.blog.category === blog.blog.category,
+        b.blog.id !== blog.blog.id && b.blog.category === blog.blog.category
     );
     if (byCategory.length > 0) return byCategory.slice(0, 3);
     return allBlogs
@@ -149,7 +168,7 @@ export default function BlogDetail() {
 
   return (
     <main
-      className={`${
+      className={`scroll-smooth ${
         readingMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
       } min-h-screen transition-colors duration-500`}
     >
@@ -206,7 +225,7 @@ export default function BlogDetail() {
         <article className="lg:col-span-2 space-y-12">
           {/* Blog content */}
           <div
-            className={`prose max-w-none md:prose-lg lg:prose-xl [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-6 [&_li]:my-2 ${
+            className={`prose max-w-none md:prose-lg lg:prose-xl [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-6 [&_li]:my-2 [&_a]:text-blue-600 [&_a]:hover:underline [&_h1]:mt-6 [&_h2]:mt-5 [&_h3]:mt-4 ${
               readingMode ? "prose-invert text-white" : "text-gray-900"
             }`}
             dangerouslySetInnerHTML={{ __html: blog.blog.content }}
@@ -218,7 +237,7 @@ export default function BlogDetail() {
               onClick={() =>
                 window.open(
                   `https://wa.me/?text=${encodedTitle} ${shareUrl}`,
-                  "_blank",
+                  "_blank"
                 )
               }
               className="w-6 h-6 cursor-pointer text-green-500 hover:text-green-600 transition"
@@ -237,7 +256,7 @@ export default function BlogDetail() {
               onClick={() =>
                 window.open(
                   `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
-                  "_blank",
+                  "_blank"
                 )
               }
               className="w-6 h-6 cursor-pointer text-blue-700 hover:text-blue-800 transition"
@@ -246,7 +265,7 @@ export default function BlogDetail() {
               onClick={() =>
                 window.open(
                   `https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${encodedTitle}`,
-                  "_blank",
+                  "_blank"
                 )
               }
               className="w-6 h-6 cursor-pointer text-blue-600 hover:text-blue-700 transition"
@@ -255,7 +274,7 @@ export default function BlogDetail() {
               onClick={() =>
                 window.open(
                   `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${shareUrl}`,
-                  "_blank",
+                  "_blank"
                 )
               }
               className="w-6 h-6 cursor-pointer text-[#1DA1F2] hover:text-[#0d95e8] transition"

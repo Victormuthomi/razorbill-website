@@ -6,11 +6,9 @@ import {
   AiOutlinePlus,
   AiOutlineEdit,
   AiOutlineEye,
-  AiOutlineMenu,
-  AiOutlineClose,
 } from "react-icons/ai";
 
-import { Editor, EditorState, RichUtils, convertToRaw } from "draft-js";
+import { Editor, EditorState, RichUtils, convertToRaw, Modifier } from "draft-js";
 import draftToHtml from "draftjs-to-html";
 import "draft-js/dist/Draft.css";
 
@@ -77,6 +75,31 @@ const NewBlog = () => {
     setEditorState(RichUtils.toggleBlockType(editorState, blockType));
   };
 
+  // Add link
+  const promptForLink = () => {
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      const url = prompt("Enter the URL");
+      if (url) {
+        const contentState = editorState.getCurrentContent();
+        const contentStateWithEntity = contentState.createEntity(
+          "LINK",
+          "MUTABLE",
+          { url }
+        );
+        const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+        const newState = RichUtils.toggleLink(
+          editorState,
+          selection,
+          entityKey
+        );
+        setEditorState(newState);
+      }
+    } else {
+      alert("Please select text to create a link");
+    }
+  };
+
   // Upload image
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
@@ -84,7 +107,7 @@ const NewBlog = () => {
     formData.append("upload_preset", "razorblogs");
     const res = await fetch(
       "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
-      { method: "POST", body: formData },
+      { method: "POST", body: formData }
     );
     if (!res.ok) throw new Error("Failed to upload image");
     const data = await res.json();
@@ -134,6 +157,13 @@ const NewBlog = () => {
       >
         <div>
           <nav className="flex flex-col gap-4">
+            <h2 className="text-gray-400 font-semibold uppercase mb-2">Toolbar</h2>
+            <Link
+              to="/blogs"
+              className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
+            >
+              Blogs
+            </Link>
             <Link
               to="/blogs/new"
               className="flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-semibold"
@@ -216,49 +246,16 @@ const NewBlog = () => {
             </label>
 
             {/* Draft.js Toolbar */}
-            <div className="flex gap-2 mb-1">
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("BOLD")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                B
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("ITALIC")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                I
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("UNDERLINE")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                U
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("unordered-list-item")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                UL
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("CODE")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                Code
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("ordered-list-item")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                OL
-              </button>
+            <div className="flex gap-2 mb-1 flex-wrap">
+              <button type="button" onClick={() => toggleInlineStyle("BOLD")} className="px-2 py-1 bg-gray-700 text-white rounded">B</button>
+              <button type="button" onClick={() => toggleInlineStyle("ITALIC")} className="px-2 py-1 bg-gray-700 text-white rounded">I</button>
+              <button type="button" onClick={() => toggleInlineStyle("UNDERLINE")} className="px-2 py-1 bg-gray-700 text-white rounded">U</button>
+              <button type="button" onClick={() => toggleBlockType("unordered-list-item")} className="px-2 py-1 bg-gray-700 text-white rounded">UL</button>
+              <button type="button" onClick={() => toggleBlockType("ordered-list-item")} className="px-2 py-1 bg-gray-700 text-white rounded">OL</button>
+              <button type="button" onClick={() => toggleBlockType("header-one")} className="px-2 py-1 bg-gray-700 text-white rounded">H1</button>
+              <button type="button" onClick={() => toggleBlockType("header-two")} className="px-2 py-1 bg-gray-700 text-white rounded">H2</button>
+              <button type="button" onClick={() => toggleBlockType("header-three")} className="px-2 py-1 bg-gray-700 text-white rounded">H3</button>
+              <button type="button" onClick={promptForLink} className="px-2 py-1 bg-gray-700 text-white rounded">Link</button>
             </div>
 
             <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[200px] p-2 text-white">
@@ -281,6 +278,7 @@ const NewBlog = () => {
           {/* Live Preview */}
           <div className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4">
             <h2 className="text-yellow-400 font-bold text-2xl">Live Preview</h2>
+
             {imageFile && (
               <img
                 src={URL.createObjectURL(imageFile)}
@@ -288,8 +286,10 @@ const NewBlog = () => {
                 className="w-full rounded-xl object-cover max-h-64"
               />
             )}
+
             <h3 className="text-white text-xl font-semibold">{title}</h3>
             <span className="text-gray-400 text-sm">{category}</span>
+
             <div
               className="prose prose-invert max-w-none text-white"
               dangerouslySetInnerHTML={{ __html: content }}
@@ -302,3 +302,4 @@ const NewBlog = () => {
 };
 
 export default NewBlog;
+
