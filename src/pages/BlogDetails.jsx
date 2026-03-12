@@ -1,8 +1,18 @@
-// src/pages/BlogDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BLOG_URL, COMMENTS_URL } from "../api";
-import { Facebook, Linkedin } from "lucide-react";
+import {
+  Facebook,
+  Linkedin,
+  ArrowLeft,
+  Clock,
+  Eye,
+  Share2,
+  Terminal,
+  ShieldCheck,
+  ChevronRight,
+  MessageSquare,
+} from "lucide-react";
 import { SiWhatsapp, SiX } from "react-icons/si";
 
 export default function BlogDetail() {
@@ -15,18 +25,30 @@ export default function BlogDetail() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [username, setUsername] = useState("");
-  const [readingMode, setReadingMode] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
-  const fetchBlog = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch(`${BLOG_URL}/${id}`);
-      if (!res.ok) throw new Error("Failed to fetch blog.");
-      const data = await res.json();
-      setBlog(data);
+      const [blogRes, allBlogsRes, commentsRes] = await Promise.all([
+        fetch(`${BLOG_URL}/${id}`),
+        fetch(BLOG_URL),
+        fetch(`${COMMENTS_URL}/${id}`),
+      ]);
+
+      if (!blogRes.ok) throw new Error("Entry not found.");
+
+      const blogData = await blogRes.json();
+      const allData = await allBlogsRes.json();
+      const commData = await commentsRes.json();
+
+      setBlog(blogData);
+      setAllBlogs(allData);
+      setComments(
+        Array.isArray(commData) ? commData : commData?.comments || []
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -34,61 +56,25 @@ export default function BlogDetail() {
     }
   };
 
-  const fetchAllBlogs = async () => {
-    try {
-      const res = await fetch(BLOG_URL);
-      if (!res.ok) throw new Error("Failed to fetch blogs.");
-      const data = await res.json();
-      setAllBlogs(data);
-    } catch (err) {
-      console.error(err);
-      setAllBlogs([]);
-    }
-  };
-
-  const fetchComments = async () => {
-    try {
-      const res = await fetch(`${COMMENTS_URL}/${id}`);
-      if (!res.ok) throw new Error("Failed to fetch comments.");
-      const data = await res.json();
-      setComments(Array.isArray(data) ? data : data?.comments || []);
-    } catch (err) {
-      console.error(err);
-      setComments([]);
-    }
-  };
-
   useEffect(() => {
-    fetchBlog();
-    fetchAllBlogs();
-    fetchComments();
+    fetchData();
+    window.scrollTo(0, 0);
   }, [id]);
 
-  // Smooth scrolling for in-page anchor links
-  useEffect(() => {
-    const handleAnchorClick = (e) => {
-      if (
-        e.target.tagName === "A" &&
-        e.target.getAttribute("href")?.startsWith("#")
-      ) {
-        e.preventDefault();
-        const targetId = e.target.getAttribute("href").slice(1);
-        const el = document.getElementById(targetId);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
-    };
-    document.addEventListener("click", handleAnchorClick);
-    return () => document.removeEventListener("click", handleAnchorClick);
-  }, []);
+  if (loading)
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center font-mono text-blue-500 text-[10px] tracking-widest">
+        DECRYPTING_LOG...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center font-mono text-red-500">
+        {error}
+      </div>
+    );
 
-  if (loading) return <p className="text-center py-10">Loading blog...</p>;
-  if (error) return <p className="text-center text-red-500 py-10">{error}</p>;
-  if (!blog) return <p className="text-center py-10">Blog not found.</p>;
-
-  const toggleReadingMode = () => setReadingMode((prev) => !prev);
-  const authorName = blog.authorName || "Unknown Author";
+  const authorName = blog.authorName || "System_Admin";
   const shareUrl = window.location.href;
   const encodedTitle = encodeURIComponent(blog.blog.title);
 
@@ -105,306 +91,262 @@ export default function BlogDetail() {
           username: username.trim(),
         }),
       });
-      if (!res.ok) throw new Error("Failed to post comment.");
-      setNewComment("");
-      setUsername("");
-      fetchComments();
+      if (res.ok) {
+        setNewComment("");
+        setUsername("");
+        fetchData(); // Refresh comments
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
-  const toggleDashboardLink = () =>
-    token && authorId
-      ? [
-          <Link
-            key="dashboard"
-            to="/authors/dashboard"
-            className="hover:text-[#FFD400] transition"
-          >
-            Dashboard
-          </Link>,
-          <button
-            key="logout"
-            onClick={() => {
-              localStorage.removeItem("authorToken");
-              localStorage.removeItem("authorId");
-              navigate("/authors/login");
-            }}
-            className="hover:text-[#FFD400] transition"
-          >
-            Logout
-          </button>,
-        ]
-      : [
-          <Link
-            key="login"
-            to="/authors/login"
-            className="hover:text-[#FFD400] transition"
-          >
-            Login
-          </Link>,
-          <Link
-            key="register"
-            to="/authors/register"
-            className="hover:text-[#FFD400] transition"
-          >
-            Register
-          </Link>,
-        ];
-
-  // Related blogs: same category first, fallback to trending
-  const relatedBlogs = (() => {
-    const byCategory = allBlogs.filter(
-      (b) =>
-        b.blog.id !== blog.blog.id && b.blog.category === blog.blog.category
-    );
-    if (byCategory.length > 0) return byCategory.slice(0, 3);
-    return allBlogs
-      .filter((b) => b.blog.id !== blog.blog.id)
-      .sort((a, b) => (b.blog.readers || 0) - (a.blog.readers || 0))
-      .slice(0, 3);
-  })();
+  const relatedBlogs = allBlogs
+    .filter((b) => b.blog.id !== blog.blog.id)
+    .sort((a, b) => (b.blog.readers || 0) - (a.blog.readers || 0))
+    .slice(0, 3);
 
   return (
-    <main
-      className={`scroll-smooth ${
-        readingMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-      } min-h-screen transition-colors duration-500`}
-    >
-      {/* Navbar */}
-      <nav className="w-full bg-black dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center text-sm">
-          <div className="flex space-x-6 font-medium">
-            <Link to="/" className="hover:text-[#FFD400] transition">
-              Home
+    <main className="bg-[#020202] text-gray-300 min-h-screen selection:bg-blue-600 font-sans">
+      {/* Navigation */}
+      <nav className="border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-[100]">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-gray-500 hover:text-white transition"
+          >
+            <ArrowLeft size={14} /> Back_To_Archive
+          </button>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/"
+              className="w-8 h-8 bg-white rounded flex items-center justify-center text-black shadow-lg shadow-white/5"
+            >
+              <Terminal size={16} />
             </Link>
-            <Link to="/blogs" className="hover:text-[#FFD400] transition">
-              Blogs
-            </Link>
-          </div>
-          <div className="flex space-x-6 font-medium">
-            {toggleDashboardLink()}
           </div>
         </div>
       </nav>
 
-      {/* Blog Header */}
-      <section className="max-w-4xl mx-auto px-6 md:px-12 py-12 relative">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 tracking-wide leading-tight">
-          {blog.blog.title}
-        </h1>
-        <p className="text-gray-500 text-sm mb-4">
-          By{" "}
-          <Link
-            to={`/authors/${blog.blog.author_id}`}
-            className="underline hover:text-[#FFD400]"
-          >
-            {authorName}
-          </Link>{" "}
-          | {new Date(blog.blog.created_at).toLocaleDateString()} |{" "}
-          {blog.blog.category || "Uncategorized"}
-        </p>
-        {blog.blog.image_url && (
-          <img
-            src={blog.blog.image_url}
-            alt={blog.blog.title || "Blog Image"}
-            className="w-full aspect-video object-cover rounded-xl shadow-md my-6"
-          />
-        )}
-        <button
-          onClick={toggleReadingMode}
-          className="absolute top-6 right-6 px-4 py-2 bg-[#FFD400] rounded-lg hover:bg-yellow-500 transition"
-        >
-          {readingMode ? "Normal Mode" : "Reading Mode"}
-        </button>
-      </section>
+      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16 py-20">
+        {/* Main Content Column */}
+        <article className="lg:col-span-8 space-y-12">
+          <header className="space-y-6">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[9px] font-mono text-blue-400 uppercase tracking-widest">
+                {blog.blog.category || "General_Log"}
+              </span>
+              <span className="text-[10px] font-mono text-gray-600 uppercase">
+                Ver_4.0.2
+              </span>
+            </div>
 
-      {/* Main Content + Sidebar */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <article className="lg:col-span-2 space-y-12">
-          {/* Blog content */}
-          <div
-            className={`prose max-w-none md:prose-lg lg:prose-xl [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-6 [&_li]:my-2 [&_a]:text-blue-600 [&_a]:hover:underline [&_h1]:mt-6 [&_h2]:mt-5 [&_h3]:mt-4 ${
-              readingMode ? "prose-invert text-white" : "text-gray-900"
-            }`}
+            <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tighter leading-[1.1]">
+              {blog.blog.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-white/5">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                  <ShieldCheck size={14} />
+                </div>
+                <span className="text-[11px] font-mono text-white uppercase tracking-wider">
+                  {authorName}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-mono text-gray-600 uppercase">
+                <Clock size={12} />{" "}
+                {new Date(blog.blog.created_at).toLocaleDateString()}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-mono text-gray-600 uppercase">
+                <Eye size={12} /> {blog.blog.readers || 0} Records
+              </div>
+            </div>
+          </header>
+
+          {blog.blog.image_url && (
+            <div className="rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+              <img
+                src={blog.blog.image_url}
+                alt="Log Header"
+                className="w-full h-auto object-cover opacity-90"
+              />
+            </div>
+          )}
+
+          {/* Body Content */}
+          <section
+            className="prose prose-invert max-w-none 
+            prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tighter
+            prose-p:text-gray-400 prose-p:leading-relaxed prose-p:font-light
+            prose-pre:bg-[#080808] prose-pre:border prose-pre:border-white/5 prose-pre:rounded-2xl
+            prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline
+            [&_ul]:list-square [&_ol]:list-decimal"
             dangerouslySetInnerHTML={{ __html: blog.blog.content }}
           />
 
-          {/* Share Buttons */}
-          <div className="flex flex-wrap items-center gap-3 mt-6">
-            <SiWhatsapp
-              onClick={() =>
-                window.open(
-                  `https://wa.me/?text=${encodedTitle} ${shareUrl}`,
-                  "_blank"
-                )
-              }
-              className="w-6 h-6 cursor-pointer text-green-500 hover:text-green-600 transition"
-            />
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(shareUrl);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              className="px-2 py-1 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
-            >
-              {copied ? "Copied!" : "📋"}
-            </button>
-            <Facebook
-              onClick={() =>
-                window.open(
-                  `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
-                  "_blank"
-                )
-              }
-              className="w-6 h-6 cursor-pointer text-blue-700 hover:text-blue-800 transition"
-            />
-            <Linkedin
-              onClick={() =>
-                window.open(
-                  `https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${encodedTitle}`,
-                  "_blank"
-                )
-              }
-              className="w-6 h-6 cursor-pointer text-blue-600 hover:text-blue-700 transition"
-            />
-            <SiX
-              onClick={() =>
-                window.open(
-                  `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${shareUrl}`,
-                  "_blank"
-                )
-              }
-              className="w-6 h-6 cursor-pointer text-[#1DA1F2] hover:text-[#0d95e8] transition"
-            />
+          {/* Social Share Terminal */}
+          <div className="pt-12 border-t border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest flex items-center gap-2">
+                <Share2 size={12} /> Broadcast_To:
+              </span>
+              <div className="flex items-center gap-4">
+                <SiWhatsapp
+                  onClick={() =>
+                    window.open(
+                      `https://wa.me/?text=${encodedTitle} ${shareUrl}`,
+                      "_blank"
+                    )
+                  }
+                  className="cursor-pointer hover:text-green-500 transition"
+                />
+                <SiX
+                  onClick={() =>
+                    window.open(
+                      `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${shareUrl}`,
+                      "_blank"
+                    )
+                  }
+                  className="cursor-pointer hover:text-white transition"
+                />
+                <Linkedin
+                  onClick={() =>
+                    window.open(
+                      `https://www.linkedin.com/shareArticle?url=${shareUrl}`,
+                      "_blank"
+                    )
+                  }
+                  className="cursor-pointer hover:text-blue-500 transition"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="text-[10px] font-mono border border-white/10 px-2 py-1 rounded hover:bg-white hover:text-black transition"
+                >
+                  {copied ? "COPIED" : "COPY_LINK"}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Comments */}
-          <div className="mt-12 space-y-6">
-            <h3 className="text-2xl font-serif font-bold mb-6">Comments</h3>
-            {comments.length === 0 ? (
-              <p className="text-gray-500 italic">No comments yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {comments.map((c) => (
-                  <li
-                    key={c.id}
-                    className={`flex space-x-4 p-4 rounded-lg ${
-                      readingMode ? "bg-gray-800" : "bg-gray-100"
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold">
-                      {c.username?.charAt(0) || "A"}
+          {/* Comments System */}
+          <section className="pt-20 space-y-12">
+            <h3 className="text-xl font-bold text-white flex items-center gap-3">
+              <MessageSquare size={20} className="text-blue-500" />{" "}
+              Interaction_Logs
+            </h3>
+
+            <div className="space-y-6">
+              {comments.map((c) => (
+                <div
+                  key={c.id}
+                  className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex gap-4"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center border border-white/10 text-gray-500 font-mono italic">
+                    {c.username?.charAt(0) || "?"}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-white uppercase">
+                        {c.username || "Guest_User"}
+                      </span>
+                      <span className="text-[9px] font-mono text-gray-700 uppercase">
+                        {new Date(c.created_at).toLocaleDateString()}
+                      </span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 text-sm mb-1">
-                        <span className="font-semibold">
-                          {c.username || "Anonymous"}
-                        </span>
-                        <span className="text-gray-500">•</span>
-                        <span className="text-gray-400 text-xs">
-                          {c.created_at
-                            ? new Date(c.created_at).toLocaleString()
-                            : ""}
-                        </span>
-                      </div>
-                      <p className="leading-relaxed">{c.content}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <form onSubmit={postComment} className="mt-6 space-y-4">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Your Name"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD400]"
-                required
-              />
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      {c.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <form
+              onSubmit={postComment}
+              className="bg-[#080808] border border-white/5 p-8 rounded-[2rem] space-y-4"
+            >
+              <div className="grid md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="AUTHOR_NAME"
+                  className="bg-black border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-blue-500 transition"
+                  required
+                />
+              </div>
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write your comment..."
+                placeholder="WRITE_RESPONSE..."
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD400] resize-none"
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-blue-500 transition resize-none"
                 required
               />
-              <button className="px-4 py-2 bg-[#FFD400] text-gray-900 font-semibold rounded-lg hover:bg-yellow-500 transition">
-                Post Comment
+              <button className="bg-blue-600 text-white px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-500 transition-all">
+                Submit_To_Archive
               </button>
             </form>
-          </div>
+          </section>
         </article>
 
-        {/* Sidebar */}
-        <aside className="space-y-12 lg:sticky lg:top-24">
-          {/* Related / Trending Blogs */}
-          <div>
-            <h3 className="text-2xl font-serif font-bold mb-4">
-              Related / Trending Blogs
+        {/* Sidebar: System Data */}
+        <aside className="lg:col-span-4 space-y-12 lg:sticky lg:top-32 h-fit">
+          <div className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] space-y-8">
+            <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+              Related_Archives
             </h3>
-            <ul className="space-y-4">
+            <div className="space-y-8">
               {relatedBlogs.map((b) => (
-                <li key={b.blog.id} className="flex items-center gap-2">
-                  {b.blog.image_url ? (
-                    <img
-                      src={b.blog.image_url}
-                      alt={b.blog.title}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded bg-gray-300 flex items-center justify-center text-xs">
-                      ?
-                    </div>
-                  )}
-                  <div>
-                    <Link
-                      to={`/blogs/${b.blog.id}`}
-                      className="block text-[#FFD400] hover:underline font-medium text-sm line-clamp-2"
-                    >
-                      {b.blog.title}
-                    </Link>
-                    <p className="text-gray-500 text-xs">
-                      {b.authorName || "Unknown Author"} • {b.blog.readers || 0}{" "}
-                      readers
-                    </p>
+                <Link
+                  key={b.blog.id}
+                  to={`/blogs/${b.blog.id}`}
+                  className="group block space-y-3"
+                >
+                  <div className="flex items-center gap-2 text-[9px] font-mono text-blue-500 uppercase">
+                    <Clock size={10} />{" "}
+                    {new Date(b.blog.created_at).toLocaleDateString()}
                   </div>
-                </li>
+                  <h4 className="text-sm font-bold text-white group-hover:text-blue-500 transition-colors leading-snug">
+                    {b.blog.title}
+                  </h4>
+                  <div className="flex items-center justify-between text-[9px] font-mono text-gray-700 uppercase">
+                    <span>By: {b.authorName}</span>
+                    <span className="flex items-center gap-1">
+                      <Eye size={10} /> {b.blog.readers}
+                    </span>
+                  </div>
+                </Link>
               ))}
-            </ul>
+            </div>
+            <Link
+              to="/blogs"
+              className="block text-center py-3 border border-dashed border-white/10 rounded-xl text-[9px] font-mono uppercase tracking-widest hover:border-blue-500 hover:text-white transition-all"
+            >
+              View_All_Logs
+            </Link>
           </div>
 
-          {/* Register / Dashboard CTA */}
-          <div
-            className={`p-6 rounded-lg text-center shadow-md ${
-              readingMode
-                ? "bg-gray-800 text-white"
-                : "bg-blue-50 text-gray-900"
-            }`}
-          >
-            <h2 className="text-xl font-serif font-bold mb-2">
-              Are you a blogger?
-            </h2>
-            <p className="mb-4">Register now and start sharing your stories!</p>
+          <div className="p-8 bg-blue-600 rounded-[2.5rem] space-y-4">
+            <h3 className="text-lg font-bold text-white">Join the Archive.</h3>
+            <p className="text-xs text-blue-100 font-light leading-relaxed">
+              Have a technical retrospective or startup insight to share?
+              Request contributor access to the Alcodist Registry.
+            </p>
             <Link
-              to={
-                token && authorId ? "/authors/dashboard" : "/authors/register"
-              }
-              className={`inline-block px-6 py-3 rounded-lg font-semibold transition ${
-                readingMode
-                  ? "bg-[#FFD400] text-gray-900 hover:bg-yellow-500"
-                  : "bg-[#1E40AF] text-white hover:bg-blue-700"
-              }`}
+              to="/authors/register"
+              className="flex items-center gap-2 text-[10px] font-mono text-white font-bold uppercase pt-4"
             >
-              {token && authorId ? "Dashboard →" : "Register →"}
+              Get_Access <ChevronRight size={14} />
             </Link>
           </div>
         </aside>
-      </section>
+      </div>
     </main>
   );
 }

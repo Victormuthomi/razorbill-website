@@ -1,36 +1,31 @@
 import React from "react";
-import watch from "../assets/watch.jpeg";
+import Results from "../components/Results";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ResultsPage = () => {
   return (
-    <div
-      className="my-6 py-12"
-      style={{
-        backgroundImage: `url(${watch})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        width: "100%",
-        height: "calc(100vh - 200px)",
-      }}
-    >
-      <div className="text-center text-white">
-        <h2 className="text-4xl mb-6 text-yellow-400">Live Matches Results</h2>
+    <div className="min-h-screen bg-obsidian-950 py-20 px-4 sm:px-12">
+      {/* Top Breadcrumb */}
+      <div className="max-w-7xl mx-auto mb-12">
+        <Link
+          to="/matches"
+          className="inline-flex items-center gap-2 text-lab-slate hover:text-white transition-colors font-mono text-[10px] uppercase tracking-widest"
+        >
+          <ArrowLeft size={14} /> Back to Transmission
+        </Link>
+      </div>
 
-        <p className="text-white text-3xl animate-pulse">
-          We're still negotiating with the football gods for today’s results...
-          ⚽️✨ <br />
-          Check back soon — mean while watch live matches using the link below!
-        </p>
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-16 text-center lg:text-left space-y-4">
+          <h1 className="text-5xl md:text-7xl font-black text-white italic uppercase tracking-tighter">
+            ARCHIVE<span className="text-lab-emerald">.LOGS</span>
+          </h1>
+          <div className="h-1 w-24 bg-lab-emerald" />
+        </header>
 
-        <div className="mt-8">
-          <a
-            href="/matches"
-            className="bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-200 transition duration-200"
-          >
-            Go to Matches
-          </a>
-        </div>
+        {/* Reusing the Intelligent Shell */}
+        <Results />
       </div>
     </div>
   );

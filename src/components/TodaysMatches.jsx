@@ -6,6 +6,15 @@ import React, {
   useRef,
 } from "react";
 import { Link } from "react-router-dom";
+import {
+  Trophy,
+  Bell,
+  BellRing,
+  PlayCircle,
+  Search,
+  Activity,
+  Clock,
+} from "lucide-react";
 import notifySound from "../assets/notify.mp3";
 import BASE_URL from "../api";
 
@@ -15,7 +24,6 @@ const TodayMatches = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [notified, setNotified] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("notifiedMatches") || "[]");
@@ -24,46 +32,44 @@ const TodayMatches = () => {
     }
   });
 
-  const [activeToastMatchId, setActiveToastMatchId] = useState(null);
   const notifyTimers = useRef({});
 
   useEffect(() => {
     let mounted = true;
-
     const fetchData = async () => {
       try {
         setLoading(true);
+        const [sportsRes, matchesRes] = await Promise.all([
+          fetch(`${BASE_URL}/api/sports`),
+          fetch(`${BASE_URL}/api/matches/today/popular`),
+        ]);
 
-        // Fetch sports
-        let sportsData = JSON.parse(
-          localStorage.getItem("sportsData") || "null",
-        );
-        if (!sportsData) {
-          const sportsResponse = await fetch(`${BASE_URL}/api/sports`);
-          if (!sportsResponse.ok) throw new Error("Failed to fetch sports.");
-          sportsData = await sportsResponse.json();
-          localStorage.setItem("sportsData", JSON.stringify(sportsData));
-        }
+        if (!sportsRes.ok || !matchesRes.ok)
+          throw new Error("Data Sync Failed.");
+
+        const sportsData = await sportsRes.json();
+        const todayMatches = await matchesRes.json();
 
         if (!mounted) return;
 
-        const sportsMapLocal = {};
-        sportsData.forEach((sport) => (sportsMapLocal[sport.id] = sport.name));
-        setSportsMap(sportsMapLocal);
+        const sMap = {};
+        sportsData.forEach((s) => (sMap[s.id] = s.name));
+        setSportsMap(sMap);
 
-        // Fetch today's popular matches
-        const res = await fetch(`${BASE_URL}/api/matches/today/popular`);
-        if (!res.ok) throw new Error("Failed to fetch today matches.");
-        const todayMatches = await res.json();
+        // Grouping and Sorting by Time (Earliest First)
+        const grouped = todayMatches.reduce((acc, m) => {
+          const cat = m.category || "other";
+          if (!acc[cat]) acc[cat] = [];
+          acc[cat].push(m);
+          return acc;
+        }, {});
 
-        // Group by sport
-        const grouped = {};
-        todayMatches.forEach((m) => {
-          if (!grouped[m.category]) grouped[m.category] = [];
-          grouped[m.category].push(m);
+        // Internal Sort for each category
+        Object.keys(grouped).forEach((cat) => {
+          grouped[cat].sort((a, b) => new Date(a.date) - new Date(b.date));
         });
 
-        if (mounted) setMatchesBySport(grouped);
+        setMatchesBySport(grouped);
       } catch (err) {
         if (mounted) setError(err.message);
       } finally {
@@ -81,166 +87,185 @@ const TodayMatches = () => {
   const handleNotify = useCallback(
     (matchId, matchTime) => {
       if (notified.includes(matchId)) return;
-
       const updated = [...notified, matchId];
       setNotified(updated);
       localStorage.setItem("notifiedMatches", JSON.stringify(updated));
-
-      setActiveToastMatchId(matchId);
-      setTimeout(() => setActiveToastMatchId(null), 5000);
 
       const notifyAt = new Date(matchTime).getTime() - 10 * 60 * 1000;
       const delay = notifyAt - Date.now();
 
       notifyTimers.current[matchId] = setTimeout(
         () => {
-          try {
-            new Audio(notifySound).play().catch(() => {});
-          } catch {}
-          alert("📢 Match starting soon!");
+          new Audio(notifySound).play().catch(() => {});
         },
-        delay > 0 ? delay : 1000,
+        delay > 0 ? delay : 1000
       );
     },
-    [notified],
+    [notified]
   );
 
-  const isMatchNotified = useCallback(
-    (id) => notified.includes(id),
-    [notified],
-  );
-
-  const filteredSortedEntries = useMemo(() => {
-    if (!matchesBySport) return [];
-
+  const filteredEntries = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    const filtered = {};
-
-    Object.entries(matchesBySport).forEach(([sportId, matches]) => {
-      const f = matches.filter((m) => {
-        const home = m.teams?.home?.name?.toLowerCase() || "";
-        const away = m.teams?.away?.name?.toLowerCase() || "";
-        return home.includes(term) || away.includes(term);
+    return Object.entries(matchesBySport)
+      .map(([id, matches]) => [
+        id,
+        matches.filter(
+          (m) =>
+            m.teams?.home?.name?.toLowerCase().includes(term) ||
+            m.teams?.away?.name?.toLowerCase().includes(term)
+        ),
+      ])
+      .filter(([_, matches]) => matches.length > 0)
+      .sort(([a], [b]) => {
+        const nameA = sportsMap[a] || "";
+        return nameA.toLowerCase() === "football" ? -1 : 1;
       });
-      if (f.length) filtered[sportId] = f;
-    });
-
-    return Object.entries(filtered).sort(([a], [b]) => {
-      const nameA = sportsMap[a]?.toLowerCase() || "";
-      const nameB = sportsMap[b]?.toLowerCase() || "";
-      if (nameA === "football") return -1;
-      if (nameB === "football") return 1;
-      return nameA.localeCompare(nameB);
-    });
   }, [searchTerm, matchesBySport, sportsMap]);
 
   if (loading)
     return (
-      <div className="text-white text-center py-10">
-        Loading today's matches...
+      <div className="flex flex-col items-center justify-center py-32">
+        <div className="relative">
+          <Activity className="text-lab-emerald animate-pulse" size={48} />
+          <div className="absolute inset-0 bg-lab-emerald/20 blur-xl animate-pulse" />
+        </div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-lab-slate mt-6">
+          Indexing Schedule...
+        </p>
       </div>
     );
-  if (error)
-    return <div className="text-red-500 text-center py-10">Error: {error}</div>;
 
   return (
-    <div className="my-6 px-4 sm:px-6 lg:px-12 text-center">
-      <div className="font-lora flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-        <h2 className="font-playfair text-2xl sm:text-3xl lg:text-4xl text-yellow-400">
-          Popular Matches Today
-        </h2>
-        <input
-          type="text"
-          placeholder="Search teams..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="font-inter w-full sm:w-auto rounded-3xl border border-white/15 bg-transparent text-white px-4 py-2 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/5 transition duration-200"
-        />
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
+      {/* Dynamic Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-lab-emerald font-mono text-[10px] uppercase tracking-widest">
+            <Clock size={14} /> System Time:{" "}
+            {new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+          <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">
+            Match<span className="text-lab-emerald">.Schedule</span>
+          </h2>
+        </div>
+
+        <div className="relative group w-full md:w-96">
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-lab-slate group-focus-within:text-lab-emerald transition-colors"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="SCAN BY TEAM IDENTITY..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-obsidian-800/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-xs font-mono text-white placeholder:text-lab-slate/40 focus:outline-none focus:border-lab-emerald/40 transition-all backdrop-blur-xl"
+          />
+        </div>
       </div>
 
-      {filteredSortedEntries.length === 0 && (
-        <p className="font-lora text-white">No popular matches today.</p>
-      )}
+      {/* Sport Streams */}
+      {filteredEntries.map(([sportId, matches]) => (
+        <section key={sportId} className="space-y-8">
+          <div className="flex items-center gap-6">
+            <span className="flex-none bg-white/5 px-4 py-1 rounded-full border border-white/5 font-mono text-[10px] text-white uppercase tracking-widest">
+              {sportsMap[sportId] || "Other"}
+            </span>
+            <div className="h-px flex-grow bg-gradient-to-r from-white/10 to-transparent" />
+          </div>
 
-      {filteredSortedEntries.map(([sportId, matches]) => (
-        <div key={sportId} className="mb-10">
-          <h3 className="font-lora text-xl sm:text-2xl text-white mb-4 font-semibold">
-            {sportsMap[sportId] || "Other"}
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {matches.map((match) => (
               <div
                 key={match.id}
-                className="relative rounded-xl border border-white/15 bg-black/60 shadow-md p-6"
+                className="group relative bg-obsidian-800/20 border border-white/5 rounded-[2rem] p-6 hover:bg-obsidian-800/60 transition-all duration-500 hover:border-white/10"
               >
-                {activeToastMatchId === match.id && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded shadow z-50 text-sm">
-                    ✅ Notification set! You will be notified 10 minutes before
-                    kickoff.
+                {/* Time Tag */}
+                <div className="flex justify-between items-center mb-8">
+                  <div className="flex items-center gap-2 text-lab-emerald">
+                    <div className="h-1.5 w-1.5 rounded-full bg-lab-emerald animate-pulse" />
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-tighter">
+                      {new Date(match.date).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
                   </div>
-                )}
+                  <button
+                    onClick={() => handleNotify(match.id, match.date)}
+                    className={`p-2 rounded-xl transition-all ${
+                      notified.includes(match.id)
+                        ? "bg-lab-emerald/10 text-lab-emerald"
+                        : "bg-white/5 text-lab-slate hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {notified.includes(match.id) ? (
+                      <BellRing size={16} />
+                    ) : (
+                      <Bell size={16} />
+                    )}
+                  </button>
+                </div>
 
-                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
-                  <div className="flex flex-col items-center text-center">
-                    <img
-                      src={match.teams?.home?.badge}
-                      alt={match.teams?.home?.name}
-                      className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
-                    />
-                    <p className="font-lora text-white mt-2 text-sm sm:text-base">
+                {/* Match Identity */}
+                <div className="flex items-center justify-between gap-2 mb-10">
+                  <div className="flex-1 flex flex-col items-center gap-3">
+                    <div className="relative">
+                      <img
+                        src={match.teams?.home?.badge}
+                        alt=""
+                        className="w-14 h-14 rounded-full bg-black/40 p-2 object-contain grayscale group-hover:grayscale-0 transition-all duration-700"
+                      />
+                      <div className="absolute inset-0 rounded-full border border-white/5" />
+                    </div>
+                    <span className="text-[11px] font-black text-white uppercase text-center tracking-tight leading-tight h-8">
                       {match.teams?.home?.name}
-                    </p>
+                    </span>
                   </div>
 
-                  <div className="font-playfair text-white text-lg font-bold">
-                    VS
+                  <div className="flex-none px-3">
+                    <span className="font-mono text-[9px] text-lab-slate opacity-20 italic font-bold">
+                      VS
+                    </span>
                   </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <img
-                      src={match.teams?.away?.badge}
-                      alt={match.teams?.away?.name}
-                      className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
-                    />
-                    <p className="font-lora text-white mt-2 text-sm sm:text-base">
+                  <div className="flex-1 flex flex-col items-center gap-3">
+                    <div className="relative">
+                      <img
+                        src={match.teams?.away?.badge}
+                        alt=""
+                        className="w-14 h-14 rounded-full bg-black/40 p-2 object-contain grayscale group-hover:grayscale-0 transition-all duration-700"
+                      />
+                      <div className="absolute inset-0 rounded-full border border-white/5" />
+                    </div>
+                    <span className="text-[11px] font-black text-white uppercase text-center tracking-tight leading-tight h-8">
                       {match.teams?.away?.name}
-                    </p>
+                    </span>
                   </div>
                 </div>
 
-                <div className="text-center mt-4">
-                  <p className="text-white text-sm">
-                    {new Date(match.date).toLocaleString()}
-                  </p>
-
+                {/* Dynamic Footer */}
+                <div className="pt-6 border-t border-white/5">
                   {match.sources?.length ? (
-                    <div className="flex justify-center items-center mt-4 space-x-3">
-                      <Link
-                        to={`/matches/${match.id}`}
-                        className="font-inter rounded-full bg-white/10 hover:bg-white hover:text-black focus:bg-white focus:text-black text-white font-medium px-6 py-3 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      >
-                        Watch Now
-                      </Link>
-
-                      <button
-                        onClick={() => handleNotify(match.id, match.date)}
-                        disabled={isMatchNotified(match.id)}
-                        className="font-inter ml-4 text-sm text-gray-300 px-6 py-3 rounded-full transition duration-200 hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      >
-                        {isMatchNotified(match.id) ? "Notified" : "Notify Me"}
-                      </button>
-                    </div>
+                    <Link
+                      to={`/matches/${match.id}`}
+                      className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] hover:bg-lab-emerald hover:text-white transition-all shadow-lg hover:shadow-lab-emerald/20"
+                    >
+                      <PlayCircle size={14} /> Open Stream
+                    </Link>
                   ) : (
-                    <p className="font-lora mt-2 text-white text-sm">
-                      No live stream available.
-                    </p>
+                    <div className="text-center py-3 text-[9px] font-mono text-lab-slate uppercase tracking-widest opacity-40 italic">
+                      Uplink Pending
+                    </div>
                   )}
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       ))}
     </div>
   );

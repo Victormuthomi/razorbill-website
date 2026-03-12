@@ -1,39 +1,65 @@
 import { Link } from "react-router-dom";
-import bill from "../assets/bill.png"; // Keep the pen image
+import { Play, Monitor, Layers } from "lucide-react";
+import bill from "../assets/bill.png";
 
 export default function Movies() {
   return (
-    <section
-      className="flex flex-col items-center justify-center text-center text-white py-0 px-6 sm:px-8 md:px-12 transition-all duration-300"
-      style={{
-        background: "transparent", // Keep transparent background
-      }}
-    >
-      <div className="bg-transparent p-6 rounded-lg max-w-4xl w-full relative">
-        {/* Title and Subtitle */}
-        <h2 className="text-yellow-400 text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight animate">
-          Movies, Series & Shows
+    <section className="relative flex flex-col items-center justify-center text-center text-white py-20 px-6 sm:px-8 md:px-12 overflow-hidden">
+      
+      {/* Structural Decor - The Alcodist Grid */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+           style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
+      <div className="max-w-4xl w-full relative z-10">
+        {/* Badge Telemetry */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="h-px w-8 bg-lab-emerald/40" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-lab-emerald">
+            Multiplex Protocol v2.0
+          </span>
+          <div className="h-px w-8 bg-lab-emerald/40" />
+        </div>
+
+        {/* Title: High-Contrast & Italicized for Speed */}
+        <h2 className="text-5xl sm:text-7xl md:text-8xl font-black italic uppercase tracking-tighter mb-6 leading-[0.9]">
+          Cinema<span className="text-transparent bg-clip-text bg-gradient-to-r from-lab-emerald to-lab-cobalt">.Stream</span>
         </h2>
-        <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
-          Dive into exciting movies, trending series, and live TV — all in one
-          place.
+
+        <p className="font-mono text-xs sm:text-sm uppercase tracking-widest max-w-2xl mx-auto mb-8 text-lab-slate leading-relaxed">
+          Decrypting global entertainment. Access ultra-high fidelity 
+          <span className="text-white"> Cinema</span>, 
+          <span className="text-white"> Series</span>, and 
+          <span className="text-white"> Live Nodes</span> from a single interface.
         </p>
 
-        {/* Pen Image */}
-        <img
-          src={bill}
-          alt="bill"
-          className="mt-0 w-36 md:w-62 mx-auto animate duration-1"
-        />
+        {/* The Pen Asset: Integrated with a "Platform" shadow */}
+        <div className="relative group">
+          <div className="absolute -inset-4 bg-lab-emerald/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <img
+            src={bill}
+            alt="bill"
+            className="relative w-40 md:w-72 mx-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-700 hover:rotate-3 hover:scale-110"
+          />
+        </div>
       </div>
 
-      {/* Button Section */}
-      <div className="mt-14 md:mt-30">
-        <Link to="/movies/home">
-          <button className="bg-white text-black px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition duration-200">
-            Get Started
-          </button>
+      {/* Action Architecture */}
+      <div className="mt-16 md:mt-24 group">
+        <Link to="/movies/home" className="relative inline-flex items-center gap-4 px-12 py-5 bg-white text-black rounded-2xl overflow-hidden transition-all duration-300 hover:pr-16 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+          <span className="font-black text-[12px] uppercase tracking-[0.3em] relative z-10">
+            Initialize Cinema
+          </span>
+          <Play size={18} fill="black" className="relative z-10" />
+          
+          {/* Subtle button sweep effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-lab-emerald to-lab-cobalt opacity-0 group-hover:opacity-10 transition-opacity" />
         </Link>
+
+        {/* Meta Stats */}
+        <div className="mt-8 flex justify-center gap-8 font-mono text-[9px] text-lab-slate uppercase tracking-widest opacity-40">
+          <span className="flex items-center gap-2"><Monitor size={10} /> 4K Ready</span>
+          <span className="flex items-center gap-2"><Layers size={10} /> 500+ Nodes</span>
+        </div>
       </div>
     </section>
   );

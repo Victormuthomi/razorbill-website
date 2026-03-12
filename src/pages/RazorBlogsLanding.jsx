@@ -1,455 +1,227 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
+import {
+  Command,
+  Terminal,
+  Eye,
+  ArrowUpRight,
+  Cpu,
+  BookOpen,
+  Globe,
+  Fingerprint,
+} from "lucide-react";
 
-export default function RazorBlogsLanding() {
-  const navigate = useNavigate();
+export default function AlcodistArchive() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [latestLimit, setLatestLimit] = useState(4); // Limit Latest Blogs initially
-  const [trendingLimit, setTrendingLimit] = useState(5);
-
-  const token = localStorage.getItem("authorToken");
-  const authorId = localStorage.getItem("authorId");
-
   const [authorCache, setAuthorCache] = useState({});
 
   useEffect(() => {
-    const fetchAuthor = async (id) => {
-      if (authorCache[id]) return authorCache[id];
-      try {
-        const res = await fetch(`${AUTHOR_URL}/public/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch author");
-        const data = await res.json();
-        const author = data.author || { name: "Unknown", avatar_url: null };
-        setAuthorCache((prev) => ({ ...prev, [id]: author }));
-        return author;
-      } catch {
-        return { name: "Unknown", avatar_url: null };
-      }
-    };
-
     const fetchBlogs = async () => {
       try {
         const res = await fetch(BLOG_URL);
-        if (!res.ok) throw new Error("Failed to fetch blogs.");
         const data = await res.json();
-
-        const blogsWithAuthors = await Promise.all(
-          data.map(async (blog) => {
-            const authorData = await fetchAuthor(blog.blog?.author_id);
-            return {
-              ...blog,
-              author: {
-                id: blog.blog?.author_id || "unknown",
-                name: authorData.name || "Unknown",
-                avatar_url: authorData.avatar_url || null,
-              },
-            };
+        const formatted = await Promise.all(
+          data.map(async (item) => {
+            const authorId = item.blog?.author_id;
+            let authorData = authorCache[authorId];
+            if (!authorData && authorId) {
+              const aRes = await fetch(`${AUTHOR_URL}/public/${authorId}`);
+              const aJson = await aRes.json();
+              authorData = aJson.author;
+              setAuthorCache((prev) => ({ ...prev, [authorId]: authorData }));
+            }
+            return { ...item, author: authorData || { name: "Guest" } };
           })
         );
 
-        setBlogs(blogsWithAuthors);
-      } catch (err) {
-        setError(err.message);
+        // Sort by Readers (Most impactful insights first)
+        setBlogs(
+          formatted.sort(
+            (a, b) => (b.blog?.readers || 0) - (a.blog?.readers || 0)
+          )
+        );
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     };
-
     fetchBlogs();
   }, []);
 
   if (loading)
-    return <p className="text-center text-gray-700 py-10">Loading blogs...</p>;
-  if (error)
     return (
-      <p className="text-center text-red-500 py-10">
-        Error loading blogs: {error}
-      </p>
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center font-mono text-blue-600 animate-pulse">
+        ACCESSING_ARCHIVE_DATA...
+      </div>
     );
-  if (!blogs || blogs.length === 0)
-    return (
-      <p className="text-center text-gray-700 py-10">
-        No blogs available at the moment
-      </p>
-    );
-
-  const featuredBlog = blogs[0];
-  const latestBlogs = blogs.slice(1, latestLimit + 1);
-
-  const categories = Array.from(
-    new Set(blogs.map((b) => b.blog?.category).filter(Boolean))
-  );
-  const blogsByCategory = categories.map((cat) => ({
-    category: cat,
-    blogs: blogs.filter((b) => b.blog?.category === cat).slice(0, 3),
-  }));
-
-  const trendingBlogs = [...blogs]
-    .sort((a, b) => (b.blog?.readers || 0) - (a.blog?.readers || 0))
-    .slice(0, trendingLimit);
-
-  const authorMap = {};
-  blogs.forEach((b) => {
-    const id = b.author.id || "unknown";
-    if (!authorMap[id]) {
-      authorMap[id] = {
-        name: b.author.name || "Unknown",
-        avatar_url: b.author.avatar_url || null,
-        count: 0,
-      };
-    }
-    authorMap[id].count += 1;
-  });
-
-  const topBloggers = Object.entries(authorMap)
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 5);
-
-  const handleLoadMore = () => setLatestLimit(latestLimit + 4);
-
-  const handleLogout = () => {
-    localStorage.removeItem("authorToken");
-    localStorage.removeItem("authorId");
-    navigate("/authors/login");
-  };
 
   return (
-    <main className="bg-white text-gray-900 min-h-screen">
-      {/* Top Navbar */}
-      <nav className="w-full bg-white/90 backdrop-blur border-b border-gray-200 fixed z-50">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center text-sm">
-          <div className="flex space-x-6 font-medium">
-            <Link to="/" className="hover:text-[#FFD400] transition">
-              Home
-            </Link>
-            <Link to="/blogs" className="hover:text-[#FFD400] transition">
-              Blogs
-            </Link>
+    <main className="bg-[#020202] text-[#888] min-h-screen font-sans">
+      {/* Structural Header */}
+      <header className="border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-[100]">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+              <Terminal size={20} />
+            </div>
+            <div>
+              <h1 className="text-white font-bold tracking-tighter text-xl uppercase">
+                Alcodist_Archive.
+              </h1>
+              <p className="text-[9px] font-mono text-blue-500 uppercase tracking-[0.3em]">
+                Insights_&_Architecture
+              </p>
+            </div>
           </div>
-          <div className="flex space-x-6 font-medium">
-            {token && authorId ? (
-              <>
-                <Link
-                  to="/authors/dashboard"
-                  className="hover:text-[#FFD400] transition"
-                >
-                  Dashboard
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-red-500 transition"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/authors/login"
-                  className="hover:text-[#FFD400] transition"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/authors/register"
-                  className="hover:text-[#FFD400] transition"
-                >
-                  Register
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white py-28 px-6 md:px-12 text-center mt-16">
-        <div className="text-sm text-yellow-400 uppercase mb-2 tracking-wide">
-          RazorBlogs
-        </div>
-        <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight tracking-wide">
-          Where Stories Grow.
-        </h1>
-        <p className="text-xl md:text-2xl mb-6 max-w-3xl mx-auto">
-          Read, write, and grow with a community of modern storytellers.
-        </p>
-        <div className="flex justify-center gap-4 flex-wrap">
-          <Link
-            to="#latest"
-            className="inline-block px-8 py-3 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
-          >
-            Explore Blogs
-          </Link>
-          {!token && (
+          <nav className="hidden md:flex items-center gap-8 text-[10px] font-mono uppercase tracking-widest">
+            <Link to="/" className="text-white">
+              Index
+            </Link>
+            <a href="#case-studies" className="hover:text-white transition">
+              Case_Studies
+            </a>
             <Link
-              to="/authors/register"
-              className="inline-block px-8 py-3 bg-[#1E40AF] text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+              to="/authors/login"
+              className="px-4 py-2 border border-white/10 rounded-md hover:bg-white hover:text-black transition-all"
             >
-              Join as Blogger
+              Portal_Access
             </Link>
-          )}
+          </nav>
         </div>
-      </section>
+      </header>
 
-      {/* Main Content */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Left Column: Featured + Latest Blogs */}
-        <div className="lg:col-span-2 space-y-12">
-          {/* Featured Blog */}
-          {featuredBlog && (
-            <div className="relative group overflow-hidden rounded-2xl shadow-lg">
-              <img
-                src={featuredBlog.blog.image_url}
-                alt={featuredBlog.blog.title}
-                className="w-full h-96 object-cover object-top transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/30 flex items-end p-8">
-                <div>
-                  <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-2 group-hover:underline transition">
-                    {featuredBlog.blog.title}
-                  </h2>
-                  <div className="flex items-center gap-2 text-gray-200 mb-4">
-                    {featuredBlog.author.avatar_url ? (
-                      <img
-                        src={featuredBlog.author.avatar_url}
-                        alt={featuredBlog.author.name}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
-                        {featuredBlog.author.name?.[0] || "?"}
-                      </div>
-                    )}
-                    <Link
-                      to={`/authors/${featuredBlog.author.id}`}
-                      className="underline hover:text-[#FFD400] transition"
-                    >
-                      {featuredBlog.author.name}
-                    </Link>{" "}
-                    | {new Date(featuredBlog.blog.created_at).toLocaleDateString()}
-                  </div>
-                  <div
-                    className="text-gray-200 line-clamp-3 mb-4"
-                    dangerouslySetInnerHTML={{
-                      __html: featuredBlog.blog.content,
-                    }}
-                  />
-                  <Link
-                    to={`/blogs/${featuredBlog.blog.id}`}
-                    className="inline-block px-6 py-2 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
-                  >
-                    Read More →
-                  </Link>
+      {/* Hero: The Founder's Mission */}
+      <section className="max-w-7xl mx-auto px-6 pt-32 pb-20">
+        <div className="grid lg:grid-cols-2 gap-20 items-center">
+          <div>
+            <div className="flex items-center gap-2 mb-6">
+              <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em]">
+                Muthomi Victor // Lead Architect
+              </span>
+            </div>
+            <h2 className="text-5xl lg:text-7xl font-bold text-white leading-[0.9] tracking-tighter mb-8">
+              Documenting <br /> the{" "}
+              <span className="text-blue-600">Build.</span>
+            </h2>
+            <p className="text-lg text-gray-400 font-light max-w-lg leading-relaxed mb-10">
+              Technical retrospectives, startup logic, and system design
+              patterns. This archive serves as the primary source of truth for
+              the Alcodist ecosystem.
+            </p>
+            <div className="flex gap-10">
+              <div>
+                <p className="text-[10px] font-mono text-gray-600 uppercase mb-1">
+                  Database
+                </p>
+                <p className="text-white font-mono text-sm">PostgreSQL_Node</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-mono text-gray-600 uppercase mb-1">
+                  Framework
+                </p>
+                <p className="text-white font-mono text-sm">NestJS_Core</p>
+              </div>
+            </div>
+          </div>
+          <div className="hidden lg:block relative">
+            <div className="absolute inset-0 bg-blue-600/10 blur-[120px] rounded-full"></div>
+            <div className="relative border border-white/10 rounded-3xl bg-black/40 p-8 backdrop-blur-sm overflow-hidden">
+              <div className="flex justify-between items-center mb-12">
+                <Cpu className="text-blue-500" size={32} />
+                <div className="text-right">
+                  <p className="text-[10px] font-mono text-gray-500 uppercase">
+                    System_Build
+                  </p>
+                  <p className="text-xs text-white font-mono">v4.0.2_STABLE</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="h-[2px] w-full bg-white/5 overflow-hidden">
+                  <div className="h-full bg-blue-600 w-3/4"></div>
+                </div>
+                <div className="h-[2px] w-full bg-white/5 overflow-hidden">
+                  <div className="h-full bg-blue-600 w-1/2"></div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        </div>
+      </section>
 
-          {/* Latest Blogs */}
-          <div id="latest">
-            <h2 className="text-3xl font-serif font-bold mb-6 tracking-wide">
-              Latest Blogs
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {latestBlogs.map((blog) => (
-                <Link
-                  key={blog.blog.id}
-                  to={`/blogs/${blog.blog.id}`}
-                  className="block rounded-xl overflow-hidden shadow hover:shadow-xl transition-shadow duration-300 bg-gray-50 group"
-                >
-                  <img
-                    src={blog.blog.image_url}
-                    alt={blog.blog.title}
-                    className="w-full h-48 object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="p-4">
-                    <h3 className="text-xl font-serif font-semibold mb-2 group-hover:text-[#FFD400] transition-colors">
-                      {blog.blog.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
-                      {blog.author.avatar_url ? (
-                        <img
-                          src={blog.author.avatar_url}
-                          alt={blog.author.name}
-                          className="w-5 h-5 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs">
-                          {blog.author.name?.[0] || "?"}
-                        </div>
-                      )}
-                      <Link
-                        to={`/authors/${blog.author.id}`}
-                        className="underline hover:text-[#FFD400] transition"
-                      >
-                        {blog.author.name}
-                      </Link>{" "}
-                      | {new Date(blog.blog.created_at).toLocaleDateString()}
-                    </div>
-                    <div
-                      className="text-gray-700 line-clamp-3 mb-2"
-                      dangerouslySetInnerHTML={{
-                        __html: blog.blog.content?.slice(0, 300),
-                      }}
-                    />
-                    <span className="text-[#FFD400] font-medium">
-                      Read More →
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            {latestLimit < blogs.length - 1 && (
-              <button
-                onClick={handleLoadMore}
-                className="mt-6 px-6 py-2 bg-[#FFD400] text-black font-semibold rounded-lg hover:bg-yellow-500 transition"
-              >
-                Load More Blogs
-              </button>
-            )}
+      {/* The Master Feed */}
+      <section
+        id="case-studies"
+        className="max-w-7xl mx-auto px-6 py-32 border-t border-white/5"
+      >
+        <div className="flex justify-between items-end mb-16">
+          <h3 className="text-white text-xs font-mono uppercase tracking-[0.5em]">
+            Central_Registry
+          </h3>
+          <div className="text-[10px] font-mono text-gray-700 uppercase tracking-widest">
+            Sort: By_Influence
           </div>
         </div>
 
-        {/* Right Sidebar */}
-        <aside className="space-y-12 sticky top-24">
-          {/* Categories */}
-          <div>
-            <h3 className="text-2xl font-serif font-bold mb-4">Categories</h3>
-            {blogsByCategory.map(({ category, blogs }) => (
-              <div key={category} className="mb-6">
-                <h4 className="text-xl font-semibold mb-2">{category}</h4>
-                <ul className="space-y-2">
-                  {blogs.map((b) => (
-                    <li key={b.blog.id} className="flex items-center gap-2">
-                      <img
-                        src={b.blog.image_url}
-                        alt={b.blog.title}
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                      <Link
-                        to={`/blogs/${b.blog.id}`}
-                        className="text-[#FFD400] hover:underline text-sm line-clamp-1"
-                      >
-                        {b.blog.title.slice(0, 30)}
-                        {b.blog.title.length > 30 && "..."}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Trending Blogs */}
-          <div>
-            <h3 className="text-2xl font-serif font-bold mb-4">Trending</h3>
-            <ul className="space-y-4">
-              {trendingBlogs.map((b) => (
-                <li key={b.blog.id} className="flex items-center gap-2">
-                  {b.author.avatar_url ? (
-                    <img
-                      src={b.author.avatar_url}
-                      alt={b.author.name}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
-                      {b.author.name?.[0] || "?"}
-                    </div>
-                  )}
-                  <div>
-                    <Link
-                      to={`/blogs/${b.blog.id}`}
-                      className="block hover:underline text-gray-800"
-                    >
-                      {b.blog.title.slice(0, 40)}
-                      {b.blog.title.length > 40 && "..."}
-                    </Link>
-                    <p className="text-gray-500 text-sm">
-                      {b.author.name} | {b.blog.readers || 0} readers
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Top Bloggers */}
-          <div>
-            <h3 className="text-2xl font-serif font-bold mb-4">Top Bloggers</h3>
-            <ul className="space-y-4">
-              {topBloggers.map(([id, blogger]) => (
-                <li key={id} className="flex items-center space-x-3">
-                  {blogger.avatar_url ? (
-                    <img
-                      src={blogger.avatar_url}
-                      alt={blogger.name || "Unknown"}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-700">
-                      {(blogger.name || "?").charAt(0)}
-                    </div>
-                  )}
-                  <div>
-                    <Link
-                      to={`/authors/${id}`}
-                      className="text-gray-800 font-medium hover:text-[#FFD400] transition"
-                    >
-                      {blogger.name || "Unknown"}
-                    </Link>
-                    <p className="text-xs text-gray-500">
-                      {blogger.count} blogs • ⭐ Top Blogger
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Register as Blogger */}
-          {!token && (
-            <div className="p-8 bg-blue-50 rounded-lg text-center shadow-md mb-8">
-              <h2 className="text-2xl font-serif font-bold mb-2">
-                Become a Storyteller
-              </h2>
-              <p className="mb-4 text-gray-700">
-                Share your ideas, insights, and experiences — start your journey
-                with RazorBlog today.
-              </p>
-              <Link
-                to="/authors/register"
-                className="inline-block px-6 py-3 bg-[#1E40AF] text-white font-semibold rounded-lg hover:bg-blue-700 transition"
-              >
-                Register as Blogger →
-              </Link>
-            </div>
-          )}
-
-          {/* Join WhatsApp Group */}
-          <div className="p-8 bg-yellow-50 rounded-lg text-center shadow-md">
-            <h2 className="text-2xl font-serif font-bold mb-2">
-              Join the RazorBlog Hub
-            </h2>
-            <p className="mb-4 text-gray-700">
-              Connect with fellow storytellers and readers — share ideas, get
-              inspired, and grow together.
-            </p>
-            <a
-              href="https://chat.whatsapp.com/KFKfAVTal37GX1EdGUGjjH"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-6 py-3 bg-[#25D366] text-white font-semibold rounded-lg hover:bg-green-600 transition"
+        <div className="grid grid-cols-1 gap-4">
+          {blogs.map((item, index) => (
+            <Link
+              key={item.blog.id}
+              to={`/blogs/${item.blog.id}`}
+              className="group flex flex-col md:flex-row justify-between items-center p-8 border border-white/5 rounded-2xl hover:bg-white/[0.02] hover:border-white/10 transition-all duration-500"
             >
-              Join WhatsApp Group →
+              <div className="flex flex-col md:flex-row gap-12 items-center flex-1">
+                <span className="text-[10px] font-mono text-blue-900 group-hover:text-blue-500 transition-colors uppercase italic font-bold">
+                  Log_0{index + 1}
+                </span>
+                <div className="max-w-xl">
+                  <h4 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors mb-2">
+                    {item.blog.title}
+                  </h4>
+                  <p className="text-sm text-gray-500 line-clamp-1 font-light">
+                    {item.author.name} // {item.blog.category || "General"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-10 mt-6 md:mt-0">
+                <div className="flex items-center gap-2">
+                  <Eye size={14} className="text-gray-700" />
+                  <span className="text-[11px] font-mono text-gray-400">
+                    {item.blog.readers || 0}
+                  </span>
+                </div>
+                <div className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                  <ArrowUpRight size={18} />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Minimalist Footer */}
+      <footer className="max-w-7xl mx-auto px-6 py-20 border-t border-white/5">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-widest text-gray-600">
+            <Link
+              to="/authors/register"
+              className="hover:text-white transition"
+            >
+              Register_Access
+            </Link>
+            <span>|</span>
+            <a href="#" className="hover:text-white transition">
+              Network_Status
             </a>
           </div>
-        </aside>
-      </section>
+          <p className="text-[10px] font-mono text-gray-800 uppercase tracking-[0.3em]">
+            © 2026 ALCODIST_SYSTEMS. DESIGNED_BY_MUT_VIC.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
-

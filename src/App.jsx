@@ -23,11 +23,8 @@ import Movies from "./pages/Movies";
 import MoviesHome from "./pages/MoviesHome";
 import MovieDetails from "./pages/MovieDetails";
 
-// SportGPT
-import Sportgpt from "./pages/Sportgpt";
-
-// Chat
-import Chat from "./pages/Chat";
+// Alcodist Hub
+import AlcodistHub from "./pages/AlcodistHub";
 
 //blog
 import RazorBlogsLanding from "./pages/RazorBlogsLanding";
@@ -70,10 +67,7 @@ const router = createBrowserRouter(
       />
 
       {/* SportGPT */}
-      <Route path="/sportgpt" element={<Sportgpt />} />
-
-      {/* Chat */}
-      <Route path="/chat" element={<Chat />} />
+      <Route path="/about" element={<AlcodistHub />} />
 
       {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
@@ -94,8 +88,8 @@ const router = createBrowserRouter(
       <Route path="/authors/public/:id" element={<AuthorProfile />} />
 
       <Route path="/authors/dashboard" element={<AuthorDashboard />} />
-    </Route>,
-  ),
+    </Route>
+  )
 );
 
 const App = () => {

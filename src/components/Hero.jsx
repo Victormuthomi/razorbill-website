@@ -1,93 +1,128 @@
+import React from "react";
 import { Link } from "react-router-dom";
-import pen from "../assets/pen.png";
+import { Zap, Download, Play, Film, Newspaper, Heart } from "lucide-react";
 
-export default function Hero({ menuOpen }) {
+export default function Hero() {
+  const bentoItems = [
+    {
+      to: "/matches",
+      title: "Live Sports",
+      description: "Real-time match discovery and streaming telemetry.",
+      icon: <Play className="text-lab-emerald" />,
+      tag: "Live",
+      color: "hover:border-lab-emerald/50",
+      span: "md:col-span-2",
+    },
+    {
+      to: "/about", // Now points to the Manifesto/About page
+      title: "The Manifesto",
+      description:
+        "A visual story of empathy, engineering, and the self-taught path.",
+      icon: <Heart className="text-lab-emerald fill-lab-emerald/20" />,
+      tag: "Identity",
+      color: "hover:border-lab-emerald/50",
+      span: "md:col-span-1",
+    },
+    {
+      to: "/movies",
+      title: "Cinema",
+      description: "Federated movie indexing and cinematic archiving.",
+      icon: <Film className="text-white" />,
+      tag: "4K",
+      color: "hover:border-white/20",
+      span: "md:col-span-1",
+    },
+    {
+      to: "/blogs",
+      title: "Community Logs",
+      description: "Open-source publishing platform for the collective voice.",
+      icon: <Newspaper className="text-lab-emerald" />,
+      tag: "Open Access",
+      color: "hover:border-lab-emerald/40",
+      span: "md:col-span-2",
+    },
+  ];
+
   return (
-    <section
-      className={`flex flex-col items-center justify-center text-center text-white py-0 px-6 sm:px-8 md:px-12 bg-cover bg-center transition-all duration-300 ${
-        menuOpen ? "mt-24" : ""
-      }`}
-      style={{ backgroundImage: "url('/assets/hero-bg.jpg')" }}
-    >
-      <div className="bg-black/50 p-6 rounded-lg max-w-4xl w-full">
-        {/* Title */}
-        <h2 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg leading-tight">
-          All Your Sports, Movies, GPT & Blogs in One Place
-        </h2>
+    <section className="relative w-full min-h-[85vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6 overflow-hidden">
+      {/* Background Decorative Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[500px] bg-lab-emerald/5 blur-[120px] rounded-full -z-10" />
 
-        {/* Subtitle */}
-        <p className="font-lora text-lg sm:text-xl md:text-2xl max-w-3xl mt-4 mb-6 text-gray-400">
-          Stream live matches with RazorSports, ask RazorGPT anything, watch
-          trending movies via RazorMovies, and read top stories on RazorBlogs —
-          all from Razorbill.
-        </p>
+      <div className="max-w-6xl w-full space-y-12 md:space-y-20">
+        {/* Branding & Headline */}
+        <div className="text-center space-y-6 pt-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-lab-emerald/30 bg-lab-emerald/5 text-lab-emerald text-[10px] font-mono uppercase tracking-[0.2em]">
+            <Zap size={12} className="animate-pulse" /> Hub Status: Operational
+          </div>
 
-        {/* Feature Links */}
-        <div className="flex flex-wrap gap-2 justify-center mt-4 mb-8">
-          <Link
-            to="/matches"
-            className="font-inter px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black 
-            focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none 
-            focus:ring-2 focus:ring-yellow-400"
-          >
-            RazorSports
-          </Link>
+          <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-tight text-white uppercase italic py-2">
+            ALCODIST
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-lab-emerald to-white/40">
+              .HUB
+            </span>
+          </h2>
 
-          <Link
-            to="/sportgpt"
-            className="font-inter px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black 
-            focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none 
-            focus:ring-2 focus:ring-yellow-400"
-          >
-            RazorGPT
-          </Link>
-
-          <Link
-            to="/movies"
-            className="font-inter px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black 
-            focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none 
-            focus:ring-2 focus:ring-yellow-400"
-          >
-            RazorMovies
-          </Link>
-
-          <Link
-            to="/blogs"
-            className="font-inter px-3 py-1 inline-block rounded-full bg-white/10 hover:bg-white hover:text-black 
-            focus:bg-white focus:text-black text-white font-medium transition duration-200 focus:outline-none 
-            focus:ring-2 focus:ring-yellow-400"
-          >
-            RazorBlogs
-          </Link>
+          <p className="font-mono text-[10px] md:text-xs text-lab-slate max-w-2xl mx-auto uppercase tracking-[0.3em] leading-relaxed opacity-70">
+            High-Fidelity Engineering //{" "}
+            <span className="text-white">Open Source Gift</span> // Cinematic
+            Preservation
+          </p>
         </div>
 
-        {/* Pen Image */}
-        <img
-          src={pen}
-          alt="pen"
-          className="mt-0 md:mt-10 w-26 md:w-52 mx-auto transition-transform duration-500 animate-bounce hover:animate-none"
-        />
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-fr">
+          {bentoItems.map((item, index) => (
+            <Link
+              key={index}
+              to={item.to}
+              className={`${item.span} group relative flex flex-col overflow-hidden rounded-3xl border border-white/5 bg-obsidian-800/40 p-6 md:p-8 transition-all duration-500 backdrop-blur-md ${item.color}`}
+            >
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className="flex justify-between items-start">
+                  <div className="p-2 bg-white/5 rounded-xl group-hover:bg-white/10 transition-colors">
+                    {item.icon}
+                  </div>
+                  <span className="text-[9px] font-mono border border-white/10 px-2 py-1 rounded text-lab-slate uppercase tracking-widest group-hover:text-white transition-colors">
+                    {item.tag}
+                  </span>
+                </div>
 
-        {/* CTA Buttons */}
-        <div className="mt-8 md:mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-          {/* Get Started */}
-          <a
-            href="/matches"
-            className="px-6 py-3 rounded-full bg-white text-black hover:bg-white/10 hover:text-white 
-            focus:bg-white/10 focus:text-white font-medium transition duration-200 focus:outline-none 
-            focus:ring-2 focus:ring-white/15"
+                <div className="mt-8 md:mt-16">
+                  <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-[11px] text-lab-slate mt-2 leading-relaxed opacity-60 group-hover:opacity-100 transition-opacity">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Background Icon Flair */}
+              <div className="absolute -bottom-6 -right-6 opacity-[0.02] group-hover:opacity-[0.08] transition-all duration-700 rotate-12 group-hover:rotate-0 scale-150">
+                {item.icon}
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* CTA Section */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-4">
+          <Link
+            to="/about"
+            className="w-full sm:w-auto px-12 py-4 rounded-full bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] hover:bg-lab-emerald hover:text-white transition-all duration-300 active:scale-95 shadow-2xl text-center"
           >
-            Get Started
-          </a>
+            Read the Story
+          </Link>
 
-          {/* Download App */}
           <a
             href="https://razorsports-backend.vercel.app/razorbill.apk"
-            download
-            className="px-6 py-3 rounded-full bg-yellow-400 text-black hover:bg-yellow-300 
-            focus:bg-yellow-300 focus:ring-2 focus:ring-yellow-500 font-medium transition duration-200"
+            className="group flex items-center gap-3 font-mono text-[9px] text-lab-slate hover:text-white transition-colors uppercase tracking-[0.2em]"
           >
-            Download App
+            <Download
+              size={14}
+              className="group-hover:animate-bounce text-lab-emerald"
+            />
+            Download APK
           </a>
         </div>
       </div>

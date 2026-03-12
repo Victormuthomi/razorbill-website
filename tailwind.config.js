@@ -1,13 +1,33 @@
 // tailwind.config.js
 export default {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      colors: {
+        // High-end Obsidian Palette
+        obsidian: {
+          900: "#050505", // True black depth
+          800: "#0D0D0D", // Main background
+          700: "#1A1A1A", // Cards/Elevated surfaces
+          600: "#262626", // Borders/Dividers
+        },
+        // Strategic Accents
+        lab: {
+          emerald: "#10B981", // Success/Live matches
+          cobalt: "#3B82F6", // Primary actions
+          slate: "#94A3B8", // Secondary text
+        },
+      },
       fontFamily: {
-        inter: ["Inter", "sans-serif"],
-        playfair: ['"Playfair Display"', "serif"],
-        gloock: ["Gloock", "serif"],
-        lora: ["Lora", "serif"],
+        // Switching to professional sans + mono pairing
+        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
+      },
+      backgroundImage: {
+        "glass-gradient":
+          "linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%)",
       },
     },
   },
+  plugins: [],
 };
