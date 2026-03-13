@@ -1,4 +1,26 @@
-// ... existing imports
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { BLOG_URL, AUTHOR_URL } from "../api";
+import {
+  AiOutlineLogout,
+  AiOutlinePlus,
+  AiOutlineEdit,
+  AiOutlineEye,
+} from "react-icons/ai";
+
+import {
+  Editor,
+  EditorState,
+  RichUtils,
+  convertFromRaw,
+  convertToRaw,
+  ContentState,
+  Modifier,
+} from "draft-js";
+import draftToHtml from "draftjs-to-html";
+import htmlToDraft from "html-to-draftjs";
+import "draft-js/dist/Draft.css";
+
 const categories = [
   "Technology",
   "Agriculture",
@@ -10,22 +32,47 @@ const categories = [
   "Lifestyle",
 ];
 
-// Senior Logic: Match these exactly with your DB enum/strings
-const contentTypes = ["blog", "tdd", "case study"];
-
 const EditBlog = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // 1. Add Type State
-  const [type, setType] = useState("blog");
+  const [author, setAuthor] = useState(null);
+  const [loadingAuthor, setLoadingAuthor] = useState(true);
+
   const [title, setTitle] = useState("");
-  // ... rest of your states
+  const [category, setCategory] = useState(categories[0]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageURL, setImageURL] = useState("");
   const [content, setContent] = useState("");
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [loading, setLoading] = useState(false);
 
-  // ... fetch author useEffect
+  const token = localStorage.getItem("authorToken");
+  const authorId = localStorage.getItem("authorId");
 
-  // 2. Fetch blog data (Updated to sync type)
+  // Fetch author info
+  useEffect(() => {
+    if (!token || !authorId) navigate("/authors/login");
+
+    const fetchAuthor = async () => {
+      try {
+        const res = await fetch(`${AUTHOR_URL}/${authorId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed");
+        const data = await res.json();
+        setAuthor(data.author);
+      } catch {
+        navigate("/authors/login");
+      } finally {
+        setLoadingAuthor(false);
+      }
+    };
+
+    fetchAuthor();
+  }, [token, authorId, navigate]);
+
+  // Fetch blog data
   useEffect(() => {
     const fetchBlog = async () => {
       try {
@@ -39,10 +86,10 @@ const EditBlog = () => {
 
         setTitle(b.title);
         setCategory(b.category);
-        setType(b.type || "blog"); // Sync the type from DB
         setImageURL(b.image_url || "");
         setContent(b.content || "");
 
+        // Load HTML into Draft.js
         if (b.content) {
           const blocksFromHtml = htmlToDraft(b.content);
           const { contentBlocks, entityMap } = blocksFromHtml;
@@ -60,7 +107,59 @@ const EditBlog = () => {
     fetchBlog();
   }, [id, token, navigate]);
 
-  // 3. Update blog (Updated payload)
+  const handleEditorChange = (state) => {
+    setEditorState(state);
+    setContent(draftToHtml(convertToRaw(state.getCurrentContent())));
+  };
+
+  const toggleInlineStyle = (style) => {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, style));
+  };
+
+  const toggleBlockType = (blockType) => {
+    setEditorState(RichUtils.toggleBlockType(editorState, blockType));
+  };
+
+  // Prompt for link
+  const promptForLink = () => {
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      const url = window.prompt("Enter the URL");
+      if (!url) return;
+      const contentState = editorState.getCurrentContent();
+      const contentStateWithEntity = contentState.createEntity(
+        "LINK",
+        "MUTABLE",
+        { url }
+      );
+      const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+      const newEditorState = EditorState.set(editorState, {
+        currentContent: contentStateWithEntity,
+      });
+      setEditorState(
+        RichUtils.toggleLink(newEditorState, selection, entityKey)
+      );
+    } else {
+      alert("Please select text to add a link.");
+    }
+  };
+
+  // Upload image
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "razorblogs");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
+      { method: "POST", body: formData }
+    );
+    if (!res.ok) throw new Error("Failed to upload image");
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  // Update blog
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -69,14 +168,7 @@ const EditBlog = () => {
       let finalImageURL = imageURL;
       if (imageFile) finalImageURL = await uploadToCloudinary(imageFile);
 
-      // Payload now includes the type
-      const payload = {
-        title,
-        content,
-        category,
-        type,
-        image_url: finalImageURL,
-      };
+      const payload = { title, content, category, image_url: finalImageURL };
 
       const res = await fetch(`${BLOG_URL}/${id}`, {
         method: "PUT",
@@ -88,6 +180,7 @@ const EditBlog = () => {
       });
 
       if (!res.ok) throw new Error("Failed to update blog");
+
       navigate(`/blogs/${id}`);
     } catch (err) {
       console.error(err);
@@ -97,42 +190,65 @@ const EditBlog = () => {
     }
   };
 
+  if (loadingAuthor)
+    return (
+      <div className="text-white text-center py-10">Loading author...</div>
+    );
+
   return (
     <div className="min-h-screen bg-black/80 flex flex-col md:flex-row">
-      {/* 4. Surgical CSS Injector (Fixes the stacking issue immediately) */}
-      <style>{`
-        .blog-content-preview p { margin-bottom: 1.25rem !important; display: block !important; }
-        .blog-content-preview h1, .blog-content-preview h2 { margin-top: 1.5rem; margin-bottom: 0.75rem; color: #fbbf24; }
-      `}</style>
+      {/* Sidebar */}
+      <aside className="bg-black/70 p-6 flex flex-col justify-between border-r border-gray-700 md:w-64 w-full">
+        <div>
+          <nav className="flex flex-col gap-4">
+            <Link
+              to="/blogs/new"
+              className="flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-semibold"
+            >
+              <AiOutlinePlus /> Create Blog
+            </Link>
+            <Link
+              to={`/authors/edit/${authorId}`}
+              className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
+            >
+              <AiOutlineEdit /> Edit Profile
+            </Link>
+            <Link
+              to={`/authors/${authorId}`}
+              className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
+            >
+              <AiOutlineEye /> View Profile
+            </Link>
+          </nav>
+        </div>
 
-      {/* Sidebar ... existing code */}
+        <button
+          onClick={() => {
+            localStorage.removeItem("authorToken");
+            localStorage.removeItem("authorId");
+            navigate("/authors/login");
+          }}
+          className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-red-600 font-semibold"
+        >
+          <AiOutlineLogout /> Logout
+        </button>
+      </aside>
 
+      {/* Main */}
       <main className="flex-1 p-6 md:p-8">
         <h1 className="text-4xl font-playfair text-yellow-400 font-bold mb-4">
-          Edit {type.toUpperCase()}
+          Edit Blog
         </h1>
+        <p className="text-gray-200 mb-6">
+          Update your blog content and preview changes in real time.
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Form */}
           <form
             onSubmit={handleUpdate}
             className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4"
           >
-            {/* 5. Content Type Selector */}
-            <label className="flex flex-col text-gray-200">
-              Content Type
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white font-mono text-xs uppercase"
-              >
-                {contentTypes.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </label>
-
             <label className="flex flex-col text-gray-200">
               Title *
               <input
@@ -144,38 +260,141 @@ const EditBlog = () => {
               />
             </label>
 
-            {/* ... Category, Image, Toolbar code */}
+            <label className="flex flex-col text-gray-200">
+              Category
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
+              >
+                {categories.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </label>
 
-            <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[300px] p-2 text-white">
+            <label className="flex flex-col text-gray-200">
+              Blog Image
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files[0])}
+                className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
+              />
+            </label>
+
+            {/* Draft.js Toolbar */}
+            <div className="flex gap-2 mb-1 flex-wrap">
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("BOLD")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("ITALIC")}
+                className="px-2 py-1 bg-gray-700 text-white rounded italic"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("UNDERLINE")}
+                className="px-2 py-1 bg-gray-700 text-white rounded underline"
+              >
+                U
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleInlineStyle("CODE")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-mono"
+              >
+                Code
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("unordered-list-item")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                UL
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("ordered-list-item")}
+                className="px-2 py-1 bg-gray-700 text-white rounded"
+              >
+                OL
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("header-one")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-lg"
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("header-two")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-md"
+              >
+                H2
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleBlockType("header-three")}
+                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-sm"
+              >
+                H3
+              </button>
+              <button
+                type="button"
+                onClick={promptForLink}
+                className="px-2 py-1 bg-gray-700 text-white rounded underline text-blue-400"
+              >
+                Link
+              </button>
+            </div>
+
+            <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[200px] p-2 text-white">
               <Editor
                 editorState={editorState}
                 onChange={handleEditorChange}
-                placeholder="Edit your content..."
+                placeholder="Edit your blog..."
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold hover:bg-yellow-500 uppercase tracking-widest"
+              className="mt-4 bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold hover:bg-yellow-500"
             >
-              {loading ? "Saving Changes..." : "Sync to Production"}
+              {loading ? "Updating..." : "Update Blog"}
             </button>
           </form>
 
           {/* Live Preview */}
           <div className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4">
-            <h2 className="text-gray-500 font-mono text-xs uppercase tracking-tighter italic">
-              Live_Node_Preview // {type}
-            </h2>
-            {/* ... Image Preview */}
-            <h3 className="text-white text-2xl font-bold leading-tight">
-              {title}
-            </h3>
+            {imageFile ? (
+              <img
+                src={URL.createObjectURL(imageFile)}
+                className="w-full rounded-xl object-cover max-h-64"
+                alt="Preview"
+              />
+            ) : imageURL ? (
+              <img
+                src={imageURL}
+                className="w-full rounded-xl object-cover max-h-64"
+                alt="Preview"
+              />
+            ) : null}
 
-            {/* This class "blog-content-preview" is targeted by the <style> tag above */}
+            <h3 className="text-white text-xl font-semibold">{title}</h3>
+            <span className="text-gray-400 text-sm">{category}</span>
+
             <div
-              className="blog-content-preview prose prose-invert max-w-none text-gray-300"
+              className="prose prose-invert max-w-none text-white"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
@@ -184,3 +403,5 @@ const EditBlog = () => {
     </div>
   );
 };
+
+export default EditBlog;
