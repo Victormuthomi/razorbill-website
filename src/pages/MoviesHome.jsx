@@ -8,7 +8,6 @@ import {
   ChevronDown,
   Check,
   LayoutGrid,
-  X,
   Play,
   Star,
   ArrowRight,
@@ -134,34 +133,38 @@ const MoviesHome = () => {
           <div className="h-px w-full bg-gradient-to-r from-lab-emerald/20 to-transparent" />
         </div>
         <div className="flex gap-6 overflow-x-auto pb-8 no-scrollbar scroll-smooth">
-          {filtered.map((item) => (
-            <Link
-              key={item.id}
-              to={`/movies/home/${type || "movie"}/${item.id}`}
-              className="group shrink-0 w-44 sm:w-56"
-            >
-              <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/5 bg-neutral-900 mb-4 transition-all duration-500 group-hover:border-lab-emerald/40 group-hover:shadow-[0_0_50px_rgba(52,211,153,0.15)]">
-                <img
-                  src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  alt="poster"
-                />
-                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-[9px] font-mono text-lab-emerald font-bold">
-                    ⭐ {item.vote_average?.toFixed(1)}
-                  </p>
+          {filtered.map((item) => {
+            const mediaType =
+              item.media_type || type || (item.first_air_date ? "tv" : "movie");
+            return (
+              <Link
+                key={item.id}
+                to={`/movies/home/${mediaType}/${item.id}`}
+                className="group shrink-0 w-44 sm:w-56"
+              >
+                <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/5 bg-neutral-900 mb-4 transition-all duration-500 group-hover:border-lab-emerald/40 group-hover:shadow-[0_0_50px_rgba(52,211,153,0.15)]">
+                  <img
+                    src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    alt="poster"
+                  />
+                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-[9px] font-mono text-lab-emerald font-bold">
+                      ⭐ {item.vote_average?.toFixed(1)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <h3 className="text-[11px] font-bold uppercase tracking-tight text-white/90 truncate group-hover:text-lab-emerald transition-colors">
-                {item.title || item.name}
-              </h3>
-              <p className="text-[9px] font-mono text-lab-slate uppercase tracking-widest mt-1 opacity-40">
-                {item.release_date?.split("-")[0] ||
-                  item.first_air_date?.split("-")[0] ||
-                  "Archive"}
-              </p>
-            </Link>
-          ))}
+                <h3 className="text-[11px] font-bold uppercase tracking-tight text-white/90 truncate group-hover:text-lab-emerald transition-colors">
+                  {item.title || item.name}
+                </h3>
+                <p className="text-[9px] font-mono text-lab-slate uppercase tracking-widest mt-1 opacity-40">
+                  {item.release_date?.split("-")[0] ||
+                    item.first_air_date?.split("-")[0] ||
+                    "Archive"}
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </div>
     );
@@ -172,7 +175,6 @@ const MoviesHome = () => {
       {/* --- PREMIUM CONTROL BAR --- */}
       <div className="sticky top-0 z-50 bg-black/60 backdrop-blur-3xl border-b border-white/5 py-6 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto flex flex-col xl:flex-row gap-6 items-center">
-          {/* 1. Search */}
           <form
             onSubmit={handleSearch}
             className="relative w-full xl:flex-1 group"
@@ -191,7 +193,6 @@ const MoviesHome = () => {
           </form>
 
           <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto justify-center">
-            {/* 2. Segmented Switcher */}
             <div className="flex p-1.5 bg-white/[0.02] border border-white/10 rounded-2xl">
               {["all", "movie", "tv"].map((t) => (
                 <button
@@ -215,7 +216,6 @@ const MoviesHome = () => {
               ))}
             </div>
 
-            {/* 3. Glassmorphism Dropdown */}
             <div className="relative" ref={genreMenuRef}>
               <button
                 onClick={() => setIsGenreOpen(!isGenreOpen)}
@@ -301,7 +301,6 @@ const MoviesHome = () => {
                 className="w-full h-full object-cover opacity-60 grayscale group-hover/hero:grayscale-0 group-hover/hero:opacity-80 group-hover/hero:scale-105 transition-all duration-[1500ms] ease-out"
                 alt="hero"
               />
-              {/* Layered overlays for depth */}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/20 to-transparent" />
             </div>
@@ -350,6 +349,7 @@ const MoviesHome = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
       {/* --- MAIN CONTENT GRID --- */}
       <div className="relative z-10 -mt-10 bg-black pt-20">
         {searchResults.length > 0 && (
@@ -387,7 +387,6 @@ const MoviesHome = () => {
           type="tv"
         />
 
-        {/* --- DYNAMIC GENRE ARCHIVES --- */}
         <div className="mt-20">
           <div className="px-6 lg:px-12 mb-16 flex items-end gap-6">
             <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white/10">
