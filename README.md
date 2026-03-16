@@ -1,59 +1,52 @@
-# 🖥️ Alcodist Hub v2.0.26
-**Architecting Resilient Distributed Systems | Personal Engineering Interface**
+# 🖥️ Alcodist Hub v3.1.0_stable
+**High-Fidelity Engineering // Open Source Gift // Cinematic Preservation**
 
-![Status](https://img.shields.io/badge/Status-Operational-green?style=for-the-badge&logo=render)
-![Stack](https://img.shields.io/badge/Stack-React_|_Vite_|_Tailwind-333333?style=for-the-badge&logo=react)
+![Hub Status](https://img.shields.io/badge/Hub_Status-Operational-green?style=for-the-badge&logo=render)
+![Node](https://img.shields.io/badge/Node-Nairobi_Active-orange?style=for-the-badge)
+![Platform](https://img.shields.io/badge/Architecture-Federated_Gateway-blue?style=for-the-badge)
 
 ## 📌 Executive Summary
-Alcodist Hub is a high-performance, minimalist portfolio designed to showcase technical depth in software architecture. Moving away from traditional "project galleries," the Hub serves as a **Knowledge Base** for Technical Design Documents (TDDs), Industrial Case Studies, and deep-dive technical blogs.
+The **Alcodist Hub** is a distributed metadata gateway and community publishing interface. Engineered for high-concurrency discovery, the platform serves as a technical bridge between **Real-time Sports Telemetry**, **Federated Cinematic Archiving**, and **Open-Source Community Logs**.
 
-The interface mimics a **System Terminal (OS)** to reflect a "bare-metal" engineering philosophy—prioritizing speed, precision, and architectural transparency.
-
----
-
-## 🏗️ Architectural Highlights
-
-### 1. Dynamic Content Categorization
-The system implements a custom filtering engine that consumes the `razorblog-backend` API. It dynamically maps content into three distinct architectural layers:
-* **TDDs (Technical Design Documents):** High-level system blueprints (e.g., RBAC implementations).
-* **Case Studies:** Production post-mortems and problem-solving logs.
-* **General Knowledge Base:** Core programming fundamentals and research.
-
-### 2. Design System: "Industrial Minimal"
-* **Typography:** Monospaced fonts for terminal-grade readability.
-* **Performance:** Optimized with Vite for near-instantaneous TTFB (Time to First Byte).
-* **UX:** Features a "System Status" monitor with live EAT (East Africa Time) synchronization and encrypted connection pulses.
+Operating as a **Nairobi-based Node**, the system prioritizes architectural speed and legal transparency by functioning strictly as a discovery layer with **zero local asset storage**.
 
 ---
 
-## 🛠️ Tech Stack
-* **Library:** React 18 (Functional Components / Hooks)
-* **Styling:** Tailwind CSS (Utility-first, dark-mode primary)
-* **Icons:** Lucide (react-icons/lu)
-* **State Management:** Native React State + Context for Auth/Theming.
-* **Deployment:** Vercel (CI/CD Integrated)
+## 🏗️ Core System Modules
+
+### 1. ⚽ Live Sports Telemetry
+* **Real-time Discovery:** Integrated engine for live match tracking and streaming telemetry.
+* **Performance:** Optimized for low-latency updates to ensure precise event discovery across global sporting networks.
+
+### 2. 🎬 Cinema (Federated Indexing)
+* **4K Archiving:** A sophisticated indexing layer for high-fidelity cinematic assets.
+* **Metadata Gateway:** Aggregates distributed media sources into a unified, high-performance interface without hosting copyrighted fragments locally.
+
+### 3. ✍️ Community Logs & Manifesto
+* **Open Access:** A decentralized publishing platform built for the collective voice of engineering.
+* **The Manifesto:** A visual and technical narrative documenting the self-taught path, empathy in design, and the "Alcodist" philosophy.
 
 ---
 
-## 🚀 Local Installation
-```bash
-# Clone the repository
-git clone [https://github.com/muthomivictor/alcodist-hub.git](https://github.com/muthomivictor/alcodist-hub.git)
+## 🛠️ Technical Specifications
+* **Version:** `v3.1.0_stable`
+* **Core Stack:** React / Vite / Tailwind CSS
+* **Mobile Layer:** Integrated Capacitor build for Android (`.apk` support).
+* **Network Logic:** Distributed Metadata Gateway (Stateless Asset Discovery).
+* **CI/CD:** Automated pipelines via Codemagic and GitHub Actions.
 
-# Install dependencies
-npm install
+---
 
-# Setup Environment Variables (.env)
-VITE_AUTHOR_ID=your_mongodb_id
-VITE_API_URL=[https://razorblog-backend.onrender.com](https://razorblog-backend.onrender.com)
+## 🔒 System Philosophy & Integrity
+* **Open Source Gift:** A project dedicated to providing high-fidelity architectural patterns to the developer community.
+* **Legal Framework:** Strict **No Local Storage** policy. The Hub acts as a federated pointer to distributed assets, ensuring compliance and scalability.
+* **Resilience:** Built to handle high-concurrency discovery through decoupled API communication with the **Alcodist Lab**.
 
-# Start Dev Server
-npm run dev
-```
-### 🔒 Security & Integrity
+---
 
-The **Alcodist Hub** utilizes a strict **read-only integration** with the **Alcodist Lab**. 
+## 🚀 Access
+* **Web:** [razorbill-website.vercel.app](https://razorbill-website.vercel.app/)
+* **Mobile:** Native Android APK available via the Hub's download portal.
 
-* **Decoupled Architecture:** All technical documentation, TDDs, and case studies are consumed via secured **REST endpoints**.
-* **Persistence Isolation:** This ensures the frontend interface remains entirely decoupled from the underlying data persistence logic and database schemas.
-* **Data Sanctity:** By treating the frontend as a consumer-only layer, we prevent unauthorized write-access at the UI level, maintaining the integrity of the professional Knowledge Base.
+---
+© 2026 ALCODIST_LABS_RND. Architecting the future of open-access telemetry.
