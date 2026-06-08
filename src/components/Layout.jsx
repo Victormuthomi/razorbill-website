@@ -1,103 +1,120 @@
 import React from "react";
 import { Outlet, NavLink, Link } from "react-router-dom";
-import {
-  Home,
-  Trophy,
-  Film,
-  MessageSquare,
-  BookOpen,
-  Activity,
-  Zap,
-} from "lucide-react";
+import { Home, Trophy, Film, MessageSquare, BookOpen } from "lucide-react";
 
 const Layout = () => {
   const navItems = [
-    { path: "/", icon: <Home size={20} />, label: "Home" },
-    { path: "/matches", icon: <Trophy size={20} />, label: "Sports" },
-    { path: "/movies", icon: <Film size={20} />, label: "Movies" },
-    { path: "/about", icon: <MessageSquare size={20} />, label: "About" },
-    { path: "/blogs", icon: <BookOpen size={20} />, label: "Logs" },
+    { path: "/", icon: <Home size={20} />, label: "home" },
+    { path: "/matches", icon: <Trophy size={20} />, label: "sports" },
+    { path: "/movies", icon: <Film size={20} />, label: "movies" },
+    { path: "/about", icon: <MessageSquare size={20} />, label: "about" },
+    { path: "/blogs", icon: <BookOpen size={20} />, label: "blogs" },
   ];
 
   return (
-    <div className="min-h-screen bg-obsidian-900 text-slate-200 selection:bg-lab-emerald/30 font-sans">
-      {/* 1. Global Technical Background */}
-      <div className="fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.05)_0%,rgba(5,5,5,1)_75%)]" />
-
-      {/* 2. Desktop Sidebar - The Professional Interface */}
-      <aside className="fixed left-0 top-0 hidden h-full w-20 flex-col items-center border-r border-white/5 bg-obsidian-800/40 py-8 backdrop-blur-2xl md:flex z-50">
-        <Link to="/" className="mb-12 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-lab-emerald to-emerald-900 text-white font-bold shadow-lg shadow-lab-emerald/20 transition-transform group-hover:scale-110">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500 selection:text-black">
+      {/* 1. Premium Expanding Desktop Sidebar */}
+      <aside className="fixed left-0 top-0 hidden h-full w-20 hover:w-52 flex-col items-start px-4 border-r border-zinc-900 bg-zinc-950 py-8 md:flex z-50 transition-all duration-300 ease-in-out group/sidebar shadow-2xl">
+        {/* Dynamic Brand Lockup */}
+        <Link
+          to="/"
+          className="mb-12 w-full flex items-center justify-center group-hover/sidebar:justify-start transition-all duration-300 flex-shrink-0"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-emerald-400 font-extrabold tracking-wider text-lg transition-all group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:text-white shadow-md flex-shrink-0">
             A
           </div>
+          <span className="opacity-0 max-w-0 overflow-hidden whitespace-nowrap font-black tracking-tight text-white uppercase text-sm transition-all duration-300 ease-in-out group-hover/sidebar:opacity-100 group-hover/sidebar:max-w-xs group-hover/sidebar:ml-3">
+            ALCODIST
+          </span>
         </Link>
-        <nav className="flex flex-col gap-10">
+
+        {/* Dynamic Navigation Options */}
+        <nav className="flex flex-col gap-4 w-full">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `relative transition-all duration-300 hover:text-lab-emerald ${
-                  isActive ? "text-lab-emerald scale-110" : "text-lab-slate"
+                `p-3 rounded-xl transition-all duration-200 border flex items-center w-full min-w-0 ${
+                  isActive
+                    ? "text-emerald-400 border-zinc-800 bg-zinc-900/50 shadow-inner font-bold"
+                    : "text-zinc-500 border-transparent hover:text-zinc-200 hover:bg-zinc-900/30"
                 }`
               }
             >
-              {item.icon}
+              <div className="flex h-5 w-5 items-center justify-center flex-shrink-0 mx-auto group-hover/sidebar:mx-0 transition-all duration-300">
+                {item.icon}
+              </div>
+              <span className="opacity-0 max-w-0 overflow-hidden whitespace-nowrap font-mono text-[11px] uppercase tracking-widest transition-all duration-300 ease-in-out group-hover/sidebar:opacity-100 group-hover/sidebar:max-w-xs group-hover/sidebar:ml-3">
+                {item.label}
+              </span>
             </NavLink>
           ))}
         </nav>
       </aside>
 
-      {/* 3. Main Stage */}
-      <div className="relative z-10 flex flex-col min-h-screen md:pl-20">
-        {/* Top Branding Bar */}
-        <header className="flex h-16 items-center justify-between px-6 backdrop-blur-sm border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-lab-slate">
-              Alcodist
+      {/* 2. Main Site Stage */}
+      <div className="relative flex flex-col min-h-screen md:pl-20">
+        {/* Persistent Responsive App Header */}
+        <header className="flex h-16 items-center justify-between px-4 sm:px-6 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 gap-2">
+          <Link
+            to="/"
+            className="flex items-center gap-2 min-w-0 group flex-shrink-0"
+          >
+            <span className="text-lg sm:text-2xl font-black tracking-tight text-white uppercase whitespace-nowrap">
+              ALCODIST
             </span>
-            <span className="h-1 w-1 rounded-full bg-lab-emerald animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white">
-              Hub
+            <span className="bg-emerald-400 text-zinc-950 text-[10px] sm:text-xs font-mono font-black px-2 py-0.5 rounded-md uppercase tracking-widest transition-colors group-hover:bg-white group-hover:text-black shadow-md shadow-emerald-500/10">
+              HUB
             </span>
-          </div>
-          <div className="flex items-center gap-4 text-[10px] font-mono text-lab-slate uppercase tracking-widest">
-            <span className="hidden sm:inline">v3.1.0_stable</span>
-            <div className="h-8 w-8 rounded-lg bg-obsidian-700 border border-white/10 flex items-center justify-center text-white">
-              V
+          </Link>
+
+          {/* Right Status Panel */}
+          <div className="flex items-center gap-3 flex-shrink-0 font-mono text-[10px] text-zinc-500 uppercase tracking-wider">
+            <span className="text-emerald-400 bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-900/30 hidden xs:inline-block">
+              online
+            </span>
+            <div className="h-8 w-8 rounded-lg border border-zinc-800 bg-zinc-900 flex items-center justify-center text-zinc-200 font-bold uppercase shadow-sm">
+              V3
             </div>
           </div>
         </header>
 
-        {/* Dynamic Content */}
-        <main className="flex-grow p-4 md:p-8 pb-32 md:pb-8">
+        {/* Dynamic Inner Component Workspace */}
+        <main className="flex-grow p-4 md:p-8 pb-24 md:pb-8">
           <Outlet />
         </main>
 
-        {/* Minimalist Professional Disclaimer */}
-        <footer className="px-8 py-6 border-t border-white/5 bg-obsidian-900/50">
-          <div className="max-w-4xl opacity-40 hover:opacity-100 transition-opacity">
-            <p className="font-mono text-[9px] leading-relaxed uppercase tracking-wider">
-              [SYSTEM NOTE]: Distributed metadata gateway. No local storage of
-              assets. &copy; {new Date().getFullYear()} ALCODIST_LABS_RND.
+        {/* Clean Footer Disclaimer */}
+        <footer className="px-6 py-6 border-t border-zinc-900 bg-zinc-950">
+          <div className="max-w-4xl text-zinc-600 hover:text-zinc-500 transition-colors duration-200">
+            <p className="font-mono text-[10px] leading-relaxed uppercase tracking-wider">
+              [note]: this platform does not store or host any media files
+              locally. all content is indexed via public networks. &copy;{" "}
+              {new Date().getFullYear()} alcodist labs.
             </p>
           </div>
         </footer>
       </div>
 
-      {/* 4. Floating Mobile App-Nav (The Mobile "Wow") */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex h-14 w-[90%] max-w-sm items-center justify-around rounded-full border border-white/10 bg-obsidian-800/80 shadow-2xl backdrop-blur-2xl md:hidden">
+      {/* 3. Mobile Navigation Dock */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-around border-t border-zinc-900 bg-zinc-950/95 backdrop-blur-md md:hidden px-2 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `p-2 transition-all duration-300 ${
-                isActive ? "text-lab-emerald" : "text-lab-slate"
+              `flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all duration-200 ${
+                isActive
+                  ? "text-emerald-400 font-bold"
+                  : "text-zinc-500 hover:text-zinc-300"
               }`
             }
           >
             {item.icon}
+            <span className="text-[9px] font-mono mt-0.5 tracking-tight uppercase">
+              {item.label}
+            </span>
           </NavLink>
         ))}
       </nav>

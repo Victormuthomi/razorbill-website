@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Monitor,
@@ -10,6 +10,7 @@ import {
   Info,
 } from "lucide-react";
 import BASE_URL from "../api";
+import razor from "../assets/razor.jpeg";
 
 const MatchDetails = () => {
   const { id } = useParams();
@@ -20,17 +21,29 @@ const MatchDetails = () => {
   const [error, setError] = useState(null);
   const [relatedMatches, setRelatedMatches] = useState([]);
 
+  // Premium background blend mimicking pitch floodlights piercing dark stadium concrete
+  const backgroundStyle = useMemo(
+    () => ({
+      backgroundImage: `linear-gradient(to bottom, rgba(9, 9, 11, 0.88), rgba(9, 9, 11, 0.99)), url(${razor})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed",
+    }),
+    []
+  );
+
   const fetchMatchDetails = useCallback(async () => {
     const controller = new AbortController();
     try {
       setLoading(true);
+      setError(null);
       const res = await fetch(`${BASE_URL}/api/matches/${id}`, {
         signal: controller.signal,
       });
-      if (!res.ok) throw new Error("Link Severed.");
+      if (!res.ok) throw new Error("Connection failed.");
       const match = await res.json();
       if (!match?.id) {
-        setError("Match Offline.");
+        setError("Match details are currently unavailable.");
         setLoading(false);
         return;
       }
@@ -58,7 +71,8 @@ const MatchDetails = () => {
         if (valid.length > 0) setSelectedStreamIndex(0);
       }
     } catch (err) {
-      if (err.name !== "AbortError") setError("Stream Sync Failed.");
+      if (err.name !== "AbortError")
+        setError("Failed to synchronize video feeds.");
     } finally {
       setLoading(false);
     }
@@ -69,7 +83,6 @@ const MatchDetails = () => {
     fetchMatchDetails();
   }, [fetchMatchDetails]);
 
-  // Sidebar Logic
   useEffect(() => {
     if (!matchDetails) return;
     const fetchRelated = async () => {
@@ -92,65 +105,88 @@ const MatchDetails = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-        <Zap className="text-lab-emerald animate-pulse" size={40} />
-        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-lab-slate">
-          Establishing Uplink...
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center space-y-4">
+        <Zap className="text-emerald-400 animate-pulse" size={32} />
+        <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-500">
+          Loading Media Player...
         </p>
       </div>
     );
 
-  return (
-    <div className="min-h-screen bg-obsidian-950 text-white pb-20">
-      {/* Top Navigation */}
-      <nav className="p-6">
+  if (error)
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center space-y-4 px-4 text-center">
+        <Info className="text-zinc-600" size={32} />
+        <p className="font-mono text-xs uppercase tracking-wider text-zinc-400">
+          {error}
+        </p>
         <Link
           to="/matches"
-          className="inline-flex items-center gap-2 text-lab-slate hover:text-white transition-colors font-mono text-[10px] uppercase tracking-widest"
+          className="text-xs font-mono text-emerald-400 hover:underline uppercase tracking-wider"
         >
-          <ArrowLeft size={14} /> Return to Hub
+          Return to Match Center
+        </Link>
+      </div>
+    );
+
+  return (
+    <div
+      className="relative min-h-screen text-zinc-100 pb-20 selection:bg-emerald-500 selection:text-black overflow-x-hidden"
+      style={backgroundStyle}
+    >
+      {/* Stadium Ambient Floodlight Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[350px] bg-gradient-to-b from-emerald-500/5 to-transparent blur-[140px] pointer-events-none z-0" />
+
+      {/* Top Navigation */}
+      <nav className="relative p-6 max-w-[1600px] mx-auto px-4 lg:px-8 z-10">
+        <Link
+          to="/matches"
+          className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-100 transition-colors font-mono text-[11px] uppercase tracking-wider"
+        >
+          <ArrowLeft size={14} /> Back to Matches
         </Link>
       </nav>
 
-      <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
+      <div className="relative max-w-[1600px] mx-auto px-4 lg:px-8 z-10">
         <div className="flex flex-col xl:flex-row gap-8">
-          {/* LEFT: PLAYER & CONTROLS */}
+          {/* LEFT: PLAYER & FEED SELECTION */}
           <div className="flex-grow space-y-8">
-            {/* The Stage */}
+            {/* The Main Stage (Video Frame) */}
             <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-lab-emerald/20 to-lab-cobalt/20 blur opacity-25" />
-              <div className="relative aspect-video bg-black rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+              {/* Dynamic Aura behind the match screen */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/10 via-zinc-500/5 to-emerald-500/10 blur-xl opacity-50 transition-opacity duration-500 group-hover:opacity-70" />
+              <div className="relative aspect-video bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800/60 shadow-2xl shadow-black/80">
                 {streams.length > 0 ? (
                   <iframe
                     src={streams[selectedStreamIndex]?.embedUrl}
                     allowFullScreen
-                    className="w-full h-full"
-                    title="Alcodist Stream"
+                    className="w-full h-full border-0"
+                    title="Live Match Stream"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-lab-slate space-y-4">
-                    <Info size={40} className="opacity-20" />
-                    <p className="font-mono text-xs uppercase tracking-widest opacity-40">
-                      No Signal Detected
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-500 space-y-3 bg-zinc-950/90">
+                    <Info size={36} className="opacity-30 text-zinc-400" />
+                    <p className="font-mono text-xs uppercase tracking-widest opacity-60">
+                      No Live Streams Available
                     </p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Match Info Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 py-6 border-b border-white/5">
+            {/* Match Information Bar */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 py-6 border-b border-zinc-900/60 backdrop-blur-sm px-2">
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <h3 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter">
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white">
                     {matchDetails?.teams?.home?.name}
                   </h3>
                 </div>
-                <div className="px-4 py-1 rounded-full bg-white/5 border border-white/10 font-mono text-[10px] text-lab-emerald">
+                <div className="px-3 py-1 rounded-md bg-zinc-900/80 border border-zinc-800 font-mono text-[10px] text-emerald-400 font-bold shadow-inner">
                   VS
                 </div>
                 <div className="text-left">
-                  <h3 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter">
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white">
                     {matchDetails?.teams?.away?.name}
                   </h3>
                 </div>
@@ -158,53 +194,56 @@ const MatchDetails = () => {
 
               <div className="flex gap-4">
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-mono text-lab-slate uppercase tracking-widest">
-                    Broadcast Quality
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                    Stream Optimization
                   </span>
-                  <span className="text-xs font-bold text-lab-emerald">
-                    HD 1080p / 60FPS
+                  <span className="text-xs font-bold text-emerald-400">
+                    Adaptive HD 1080p
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Stream Selection Tabs */}
+            {/* Stream Selection Area */}
             <div className="space-y-4">
-              <h4 className="font-mono text-[10px] text-lab-slate uppercase tracking-[0.3em]">
-                Available Frequencies
+              <h4 className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest px-1">
+                Select Stream Server
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {streams.map((stream, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedStreamIndex(index)}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
+                    className={`flex items-center justify-between p-4 rounded-lg border backdrop-blur-md transition-all duration-200 ${
                       selectedStreamIndex === index
-                        ? "bg-white text-black border-white"
-                        : "bg-obsidian-900/50 border-white/5 text-lab-slate hover:border-white/20"
+                        ? "bg-zinc-100 text-zinc-950 border-zinc-100 shadow-lg"
+                        : "bg-zinc-950/40 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-100"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`p-2 rounded-lg ${
+                        className={`p-2 rounded ${
                           selectedStreamIndex === index
-                            ? "bg-black/10"
-                            : "bg-white/5"
+                            ? "bg-zinc-950/10"
+                            : "bg-zinc-950"
                         }`}
                       >
                         <Play
-                          size={14}
-                          fill={
-                            selectedStreamIndex === index ? "black" : "none"
+                          size={12}
+                          className={
+                            selectedStreamIndex === index
+                              ? "fill-zinc-950 text-zinc-950"
+                              : "text-zinc-400"
                           }
                         />
                       </div>
                       <div className="text-left">
-                        <p className="text-[10px] font-black uppercase tracking-tighter leading-none">
-                          Stream #{index + 1}
+                        <p className="text-[11px] font-bold uppercase tracking-tight">
+                          Server #{index + 1}
                         </p>
-                        <p className="text-[9px] font-mono opacity-60 uppercase">
-                          {stream.language} • {stream.source}
+                        <p className="text-[10px] font-mono opacity-75 uppercase tracking-wide mt-0.5">
+                          {stream.language || "English"} •{" "}
+                          {stream.source || "CDN"}
                         </p>
                       </div>
                     </div>
@@ -213,8 +252,8 @@ const MatchDetails = () => {
                         size={14}
                         className={
                           selectedStreamIndex === index
-                            ? "text-black"
-                            : "text-lab-emerald"
+                            ? "text-zinc-950"
+                            : "text-emerald-400"
                         }
                       />
                     )}
@@ -224,51 +263,58 @@ const MatchDetails = () => {
             </div>
           </div>
 
-          {/* RIGHT: SECONDARY FEED (Related) */}
-          <div className="xl:w-[380px] space-y-6">
-            <div className="bg-obsidian-900/40 border border-white/5 rounded-[2rem] p-6">
-              <h3 className="font-mono text-[10px] text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                <Monitor size={14} /> Global Feed
+          {/* RIGHT: SIDEBAR (Related Broadcasts) */}
+          <div className="xl:w-[380px] space-y-6 flex-shrink-0">
+            <div className="bg-zinc-950/40 border border-zinc-900/80 rounded-xl p-6 backdrop-blur-md">
+              <h3 className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Monitor size={14} /> Other Live Events
               </h3>
-              <div className="space-y-3">
-                {relatedMatches.map((m) => (
-                  <Link
-                    key={m.id}
-                    to={`/matches/${m.id}`}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-white uppercase group-hover:text-lab-emerald transition-colors">
-                        {m.teams?.home?.name}{" "}
-                        <span className="opacity-20 mx-1 italic text-[8px]">
-                          vs
-                        </span>{" "}
-                        {m.teams?.away?.name}
-                      </p>
-                      <p className="text-[8px] font-mono text-lab-slate uppercase tracking-widest">
-                        {new Date(m.date).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    <div className="h-2 w-2 rounded-full bg-lab-emerald animate-pulse" />
-                  </Link>
-                ))}
-              </div>
+
+              {relatedMatches.length > 0 ? (
+                <div className="space-y-2">
+                  {relatedMatches.map((m) => (
+                    <Link
+                      key={m.id}
+                      to={`/matches/${m.id}`}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-900/40 border border-transparent hover:border-zinc-800/60 transition-all group"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-bold text-zinc-300 uppercase group-hover:text-emerald-400 transition-colors">
+                          {m.teams?.home?.name}{" "}
+                          <span className="text-zinc-600 mx-1 font-normal lowercase">
+                            vs
+                          </span>{" "}
+                          {m.teams?.away?.name}
+                        </p>
+                        <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">
+                          {new Date(m.date).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-wide py-2">
+                  No other matches in this category
+                </p>
+              )}
             </div>
 
-            {/* Lab Meta Card */}
-            <div className="p-6 rounded-[2rem] border border-lab-cobalt/20 bg-lab-cobalt/5">
+            {/* Edge Performance Card */}
+            <div className="p-5 rounded-xl border border-zinc-900/80 bg-zinc-950/20 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
-                <Globe size={14} className="text-lab-cobalt" />
-                <span className="text-[10px] font-mono text-white uppercase font-bold tracking-tighter">
-                  Satellite Optimization
+                <Globe size={13} className="text-emerald-400" />
+                <span className="text-[10px] font-mono text-zinc-400 uppercase font-bold tracking-wider">
+                  Network Performance
                 </span>
               </div>
-              <p className="text-[9px] text-lab-slate leading-relaxed font-mono">
-                Alcodist Hub automatically routes your connection through the
-                fastest local node for reduced latency in Meru and beyond.
+              <p className="text-[10px] text-zinc-500 leading-relaxed font-mono">
+                Traffic is automatically balanced across regional CDN edges to
+                ensure optimal buffer speeds and low latency playback.
               </p>
             </div>
           </div>

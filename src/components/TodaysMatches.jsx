@@ -10,7 +10,7 @@ import {
   Trophy,
   Bell,
   BellRing,
-  PlayCircle,
+  Play,
   Search,
   Activity,
   Clock,
@@ -39,32 +39,39 @@ const TodayMatches = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        // Retained precise network queries matching your backend configuration
         const [sportsRes, matchesRes] = await Promise.all([
           fetch(`${BASE_URL}/api/sports`),
           fetch(`${BASE_URL}/api/matches/today/popular`),
         ]);
 
         if (!sportsRes.ok || !matchesRes.ok)
-          throw new Error("Data Sync Failed.");
+          throw new Error("Failed to synchronize daily match schedule.");
 
         const sportsData = await sportsRes.json();
         const todayMatches = await matchesRes.json();
 
         if (!mounted) return;
 
+        // Verify array safety structures before executing mapping tasks
+        const safeSportsData = Array.isArray(sportsData) ? sportsData : [];
+        const safeTodayMatches = Array.isArray(todayMatches)
+          ? todayMatches
+          : [];
+
         const sMap = {};
-        sportsData.forEach((s) => (sMap[s.id] = s.name));
+        safeSportsData.forEach((s) => (sMap[s.id] = s.name));
         setSportsMap(sMap);
 
-        // Grouping and Sorting by Time (Earliest First)
-        const grouped = todayMatches.reduce((acc, m) => {
+        // Grouping and Sorting by Chronological Order (Earliest First)
+        const grouped = safeTodayMatches.reduce((acc, m) => {
           const cat = m.category || "other";
           if (!acc[cat]) acc[cat] = [];
           acc[cat].push(m);
           return acc;
         }, {});
 
-        // Internal Sort for each category
+        // Sort items inside each sport category accurately by kickoff timestamps
         Object.keys(grouped).forEach((cat) => {
           grouped[cat].sort((a, b) => new Date(a.date) - new Date(b.date));
         });
@@ -122,151 +129,194 @@ const TodayMatches = () => {
       });
   }, [searchTerm, matchesBySport, sportsMap]);
 
+  // Premium, Standardized Loading State
   if (loading)
     return (
-      <div className="flex flex-col items-center justify-center py-32">
-        <div className="relative">
-          <Activity className="text-lab-emerald animate-pulse" size={48} />
-          <div className="absolute inset-0 bg-lab-emerald/20 blur-xl animate-pulse" />
-        </div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-lab-slate mt-6">
-          Indexing Schedule...
+      <div className="flex flex-col items-center justify-center py-32 space-y-4">
+        <Clock className="text-zinc-600 animate-pulse" size={32} />
+        <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-500">
+          Loading today's schedule...
         </p>
       </div>
     );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
-      {/* Dynamic Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-lab-emerald font-mono text-[10px] uppercase tracking-widest">
-            <Clock size={14} /> System Time:{" "}
-            {new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+    <div className="max-w-7xl mx-auto px-2 py-6 space-y-10">
+      {/* Search Header Dashboard Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800 pb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[11px] uppercase tracking-wider">
+            <Clock size={12} className="text-emerald-400" /> Live System Time:{" "}
+            <span className="text-zinc-300">
+              {new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
-          <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">
-            Match<span className="text-lab-emerald">.Schedule</span>
+          <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight">
+            Match Schedule
           </h2>
         </div>
 
-        <div className="relative group w-full md:w-96">
+        {/* Minimalist Search Box */}
+        <div className="relative w-full md:w-80">
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-lab-slate group-focus-within:text-lab-emerald transition-colors"
-            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600 focus-within:text-zinc-400 transition-colors"
+            size={16}
           />
           <input
             type="text"
-            placeholder="SCAN BY TEAM IDENTITY..."
+            placeholder="Search by team name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-obsidian-800/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-xs font-mono text-white placeholder:text-lab-slate/40 focus:outline-none focus:border-lab-emerald/40 transition-all backdrop-blur-xl"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-3 pl-10 pr-4 text-xs font-mono text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 transition-colors"
           />
         </div>
       </div>
 
-      {/* Sport Streams */}
-      {filteredEntries.map(([sportId, matches]) => (
-        <section key={sportId} className="space-y-8">
-          <div className="flex items-center gap-6">
-            <span className="flex-none bg-white/5 px-4 py-1 rounded-full border border-white/5 font-mono text-[10px] text-white uppercase tracking-widest">
-              {sportsMap[sportId] || "Other"}
-            </span>
-            <div className="h-px flex-grow bg-gradient-to-r from-white/10 to-transparent" />
-          </div>
+      {/* Network Connectivity Issues Handler */}
+      {error && (
+        <div className="max-w-md mx-auto p-4 rounded-lg bg-zinc-950 border border-red-900/30 text-center">
+          <p className="text-xs text-zinc-500 font-mono">
+            Sync Error: {error}. Retrying interface updates...
+          </p>
+        </div>
+      )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {matches.map((match) => (
-              <div
-                key={match.id}
-                className="group relative bg-obsidian-800/20 border border-white/5 rounded-[2rem] p-6 hover:bg-obsidian-800/60 transition-all duration-500 hover:border-white/10"
-              >
-                {/* Time Tag */}
-                <div className="flex justify-between items-center mb-8">
-                  <div className="flex items-center gap-2 text-lab-emerald">
-                    <div className="h-1.5 w-1.5 rounded-full bg-lab-emerald animate-pulse" />
-                    <span className="font-mono text-[11px] font-bold uppercase tracking-tighter">
-                      {new Date(match.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleNotify(match.id, match.date)}
-                    className={`p-2 rounded-xl transition-all ${
-                      notified.includes(match.id)
-                        ? "bg-lab-emerald/10 text-lab-emerald"
-                        : "bg-white/5 text-lab-slate hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    {notified.includes(match.id) ? (
-                      <BellRing size={16} />
-                    ) : (
-                      <Bell size={16} />
-                    )}
-                  </button>
-                </div>
+      {/* Structured Category Feeds */}
+      {filteredEntries.length === 0 ? (
+        <div className="text-center py-24 border border-dashed border-zinc-800 rounded-xl bg-zinc-950/30">
+          <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest">
+            No matching events found on today's program
+          </p>
+        </div>
+      ) : (
+        filteredEntries.map(([sportId, matches]) => (
+          <section key={sportId} className="space-y-6">
+            {/* Minimalist Section Separator Header */}
+            <div className="flex items-center gap-4">
+              <span className="flex-none bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-md font-mono text-[11px] text-zinc-300 font-bold uppercase tracking-wider">
+                {sportsMap[sportId] || "Other Sports"}
+              </span>
+              <div className="h-px flex-grow bg-zinc-900" />
+            </div>
 
-                {/* Match Identity */}
-                <div className="flex items-center justify-between gap-2 mb-10">
-                  <div className="flex-1 flex flex-col items-center gap-3">
-                    <div className="relative">
-                      <img
-                        src={match.teams?.home?.badge}
-                        alt=""
-                        className="w-14 h-14 rounded-full bg-black/40 p-2 object-contain grayscale group-hover:grayscale-0 transition-all duration-700"
-                      />
-                      <div className="absolute inset-0 rounded-full border border-white/5" />
+            {/* Subgrid Card Core Element Container */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {matches.map((match) => (
+                <div
+                  key={match.id}
+                  className="group relative bg-zinc-950 border border-zinc-800 rounded-xl p-5 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/50"
+                >
+                  {/* Card Status / Configuration Header */}
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-1.5 text-zinc-400">
+                      <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-emerald-400 transition-colors duration-300" />
+                      <span className="font-mono text-xs font-bold text-zinc-400 tracking-tight">
+                        {new Date(match.date).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </div>
-                    <span className="text-[11px] font-black text-white uppercase text-center tracking-tight leading-tight h-8">
-                      {match.teams?.home?.name}
-                    </span>
-                  </div>
 
-                  <div className="flex-none px-3">
-                    <span className="font-mono text-[9px] text-lab-slate opacity-20 italic font-bold">
-                      VS
-                    </span>
-                  </div>
-
-                  <div className="flex-1 flex flex-col items-center gap-3">
-                    <div className="relative">
-                      <img
-                        src={match.teams?.away?.badge}
-                        alt=""
-                        className="w-14 h-14 rounded-full bg-black/40 p-2 object-contain grayscale group-hover:grayscale-0 transition-all duration-700"
-                      />
-                      <div className="absolute inset-0 rounded-full border border-white/5" />
-                    </div>
-                    <span className="text-[11px] font-black text-white uppercase text-center tracking-tight leading-tight h-8">
-                      {match.teams?.away?.name}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Dynamic Footer */}
-                <div className="pt-6 border-t border-white/5">
-                  {match.sources?.length ? (
-                    <Link
-                      to={`/matches/${match.id}`}
-                      className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] hover:bg-lab-emerald hover:text-white transition-all shadow-lg hover:shadow-lab-emerald/20"
+                    {/* Schedule Reminder Button Toggle */}
+                    <button
+                      onClick={() => handleNotify(match.id, match.date)}
+                      className={`p-2 rounded-lg border transition-all duration-200 ${
+                        notified.includes(match.id)
+                          ? "bg-emerald-950/40 border-emerald-900/50 text-emerald-400"
+                          : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700"
+                      }`}
+                      title={
+                        notified.includes(match.id)
+                          ? "Reminder Armed"
+                          : "Set Reminder"
+                      }
                     >
-                      <PlayCircle size={14} /> Open Stream
-                    </Link>
-                  ) : (
-                    <div className="text-center py-3 text-[9px] font-mono text-lab-slate uppercase tracking-widest opacity-40 italic">
-                      Uplink Pending
+                      {notified.includes(match.id) ? (
+                        <BellRing size={13} />
+                      ) : (
+                        <Bell size={13} />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Team Layout Information Grid */}
+                  <div className="grid grid-cols-7 items-center gap-2 mb-8">
+                    {/* Home Side Asset Block */}
+                    <div className="col-span-3 flex flex-col items-center gap-3">
+                      {/* Soft Square Shield Housing Layout protects rectangular logos */}
+                      <div className="h-14 w-14 rounded-xl bg-zinc-900 border border-zinc-800/80 p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
+                        {match.teams?.home?.badge ? (
+                          <img
+                            src={match.teams.home.badge}
+                            alt=""
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-xs text-zinc-600 font-mono font-bold uppercase">
+                            {match.teams?.home?.name?.slice(0, 2) || "H"}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-zinc-200 uppercase text-center line-clamp-2 min-h-[2rem] px-1">
+                        {match.teams?.home?.name || "Home Team"}
+                      </span>
                     </div>
-                  )}
+
+                    {/* Middle Versus Indicator text split */}
+                    <div className="col-span-1 flex justify-center">
+                      <span className="font-mono text-[10px] text-zinc-600 font-bold">
+                        VS
+                      </span>
+                    </div>
+
+                    {/* Away Side Asset Block */}
+                    <div className="col-span-3 flex flex-col items-center gap-3">
+                      {/* Soft Square Shield Housing Layout protects rectangular logos */}
+                      <div className="h-14 w-14 rounded-xl bg-zinc-900 border border-zinc-800/80 p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
+                        {match.teams?.away?.badge ? (
+                          <img
+                            src={match.teams.away.badge}
+                            alt=""
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-xs text-zinc-600 font-mono font-bold uppercase">
+                            {match.teams?.away?.name?.slice(0, 2) || "A"}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-zinc-200 uppercase text-center line-clamp-2 min-h-[2rem] px-1">
+                        {match.teams?.away?.name || "Away Team"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Operational Footer Action Layout */}
+                  <div className="pt-4 border-t border-zinc-800">
+                    {match.sources?.length ? (
+                      <Link
+                        to={`/matches/${match.id}`}
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 font-mono text-[11px] uppercase tracking-wider hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all duration-200 font-bold"
+                      >
+                        <Play size={11} className="fill-current" /> Watch
+                        Broadcast
+                      </Link>
+                    ) : (
+                      <div className="text-center py-2.5 text-[10px] font-mono text-zinc-600 uppercase tracking-widest bg-zinc-950 rounded-md border border-zinc-900/60">
+                        Awaiting Stream Link
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
+              ))}
+            </div>
+          </section>
+        ))
+      )}
     </div>
   );
 };

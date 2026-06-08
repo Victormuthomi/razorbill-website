@@ -1,73 +1,38 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { Database, ChevronRight, Activity, Terminal } from "lucide-react";
+import { Database, ChevronRight, Terminal } from "lucide-react";
 
 const Results = () => {
   return (
-    <div 
-      className="relative w-full rounded-[3rem] overflow-hidden border border-white/5 my-12 bg-obsidian-950"
-      style={{ height: "500px" }}
-    >
-      {/* Visual Layer: Technical Grid & Mesh */}
-      <div className="absolute inset-0 z-0">
-        {/* The Grid */}
-        <div 
-          className="absolute inset-0 opacity-[0.05]" 
-          style={{ 
-            backgroundImage: `linear-gradient(to right, #34d399 1px, transparent 1px), linear-gradient(to bottom, #34d399 1px, transparent 1px)`,
-            backgroundSize: '40px 40px' 
-          }} 
-        />
-        {/* The Glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(52,211,153,0.08),transparent_70%)]" />
-      </div>
-
-      {/* Content Layer */}
-      <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-6">
-        
-        {/* Scanner Animation */}
-        <div className="relative mb-8">
-          <div className="absolute -inset-8 bg-lab-emerald/10 blur-3xl animate-pulse rounded-full" />
-          <div className="relative flex items-center justify-center bg-obsidian-900 border border-white/10 w-20 h-20 rounded-[2rem] shadow-2xl">
-            <Database className="text-lab-emerald" size={32} />
-            {/* Corner Accents */}
-            <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-lab-emerald/40" />
-            <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-lab-emerald/40" />
-          </div>
+    <div className="w-full rounded-2xl border border-zinc-900 bg-zinc-950/20 p-8 sm:p-12 transition-all duration-300 backdrop-blur-sm flex flex-col sm:flex-row items-center justify-between gap-6 my-6">
+      {/* Left Column: Icon and Info */}
+      <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left min-w-0">
+        <div className="p-3 bg-zinc-900/40 border border-zinc-900 rounded-xl flex-shrink-0">
+          <Database className="text-zinc-500 animate-pulse" size={22} />
         </div>
 
-        <div className="space-y-6 max-w-xl">
-          <div className="flex flex-col items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lab-emerald/5 border border-lab-emerald/20 text-lab-emerald font-mono text-[9px] uppercase tracking-[0.4em]">
-              <Activity size={10} className="animate-pulse" /> Uplink: Established
-            </div>
-          </div>
-          
-          <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter leading-none">
-            DATA<span className="text-transparent bg-clip-text bg-gradient-to-r from-lab-emerald to-lab-cobalt">.ARCHIVE</span>
+        <div className="space-y-1.5 min-w-0">
+          <h2 className="flex items-center justify-center sm:justify-start gap-2 text-lg font-black text-white uppercase tracking-tight">
+            <span>Match Results</span>
+            <span className="bg-zinc-800 text-zinc-400 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+              Coming Soon
+            </span>
           </h2>
-          
-          <p className="font-mono text-[10px] text-lab-slate uppercase tracking-[0.3em] leading-relaxed opacity-60 px-4 max-w-md mx-auto">
-            System is currently executing <span className="text-white">Deep-Sync Protocols</span> across global endpoints. Historical metrics are encrypted until verification.
+          <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
+            Historical stats, live match scores, and past tournament metrics are
+            currently being indexed.
           </p>
         </div>
-
-        <div className="mt-12 flex flex-col items-center gap-4">
-          <Link
-            to="/results"
-            className="group relative flex items-center gap-3 px-10 py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] transition-all hover:pr-14 active:scale-95 shadow-xl"
-          >
-            Access Terminal <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
-          </Link>
-          
-          <div className="flex items-center gap-2 text-[8px] font-mono text-lab-slate/40 uppercase tracking-[0.5em]">
-            <Terminal size={10} /> Root Access Required
-          </div>
-        </div>
       </div>
 
-      {/* Bottom Telemetry Bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-lab-emerald/20 to-transparent" />
+      {/* Right Column: Clean Status Action */}
+      <div className="flex flex-col items-center sm:items-end gap-2 flex-shrink-0 w-full sm:w-auto">
+        <button
+          disabled
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-zinc-900 bg-zinc-950/40 text-zinc-600 font-mono text-[10px] uppercase tracking-widest cursor-not-allowed"
+        >
+          <Terminal size={12} /> System Offline
+        </button>
+      </div>
     </div>
   );
 };

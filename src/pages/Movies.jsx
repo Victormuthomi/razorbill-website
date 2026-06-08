@@ -1,64 +1,79 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { Play, Monitor, Layers } from "lucide-react";
 import bill from "../assets/bill.png";
 
 export default function Movies() {
   return (
-    <section className="relative flex flex-col items-center justify-center text-center text-white py-20 px-6 sm:px-8 md:px-12 overflow-hidden">
-      
-      {/* Structural Decor - The Alcodist Grid */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+    <section className="relative flex flex-col items-center justify-center text-center text-white py-24 px-4 sm:px-6 min-h-[70vh] bg-zinc-950 border border-zinc-900 rounded-3xl m-2 sm:m-4 shadow-2xl overflow-hidden">
+      {/* CSS-Only Depth Pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.05] pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(#52525b 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      {/* Subtle Bottom-Right Glow for Contrast */}
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/5 blur-[150px] rounded-full pointer-events-none" />
 
       <div className="max-w-4xl w-full relative z-10">
         {/* Badge Telemetry */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="h-px w-8 bg-lab-emerald/40" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.5em] text-lab-emerald">
-            Multiplex Protocol v2.0
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="h-[1px] w-6 bg-zinc-800" />
+          <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-emerald-400 font-bold">
+            Movies Section
           </span>
-          <div className="h-px w-8 bg-lab-emerald/40" />
+          <div className="h-[1px] w-6 bg-zinc-800" />
         </div>
 
-        {/* Title: High-Contrast & Italicized for Speed */}
-        <h2 className="text-5xl sm:text-7xl md:text-8xl font-black italic uppercase tracking-tighter mb-6 leading-[0.9]">
-          Cinema<span className="text-transparent bg-clip-text bg-gradient-to-r from-lab-emerald to-lab-cobalt">.Stream</span>
+        {/* Brand Header */}
+        <h2 className="flex flex-wrap items-center justify-center gap-3 text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter uppercase leading-none mb-6">
+          <span className="text-white">MOVIES</span>
+          <span className="bg-emerald-400 text-zinc-950 text-[18px] sm:text-3xl md:text-4xl font-mono font-black px-3 py-1 rounded-xl tracking-widest shadow-md shadow-emerald-500/10">
+            .STREAM
+          </span>
         </h2>
 
-        <p className="font-mono text-xs sm:text-sm uppercase tracking-widest max-w-2xl mx-auto mb-8 text-lab-slate leading-relaxed">
-          Decrypting global entertainment. Access ultra-high fidelity 
-          <span className="text-white"> Cinema</span>, 
-          <span className="text-white"> Series</span>, and 
-          <span className="text-white"> Live Nodes</span> from a single interface.
+        {/* Direct Subtext */}
+        <p className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.25em] max-w-xl mx-auto mb-12 text-zinc-500 leading-relaxed">
+          Watch the latest <span className="text-zinc-300">Movies</span>, full{" "}
+          <span className="text-zinc-300">Series</span>, and live entertainment
+          in one place.
         </p>
 
-        {/* The Pen Asset: Integrated with a "Platform" shadow */}
-        <div className="relative group">
-          <div className="absolute -inset-4 bg-lab-emerald/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+        {/* Graphic Asset */}
+        <div className="relative group max-w-xs mx-auto mb-4">
           <img
             src={bill}
-            alt="bill"
-            className="relative w-40 md:w-72 mx-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-700 hover:rotate-3 hover:scale-110"
+            alt="media"
+            className="relative w-44 md:w-56 mx-auto drop-shadow-[0_25px_40px_rgba(0,0,0,0.8)] transition-transform duration-500 group-hover:scale-105"
           />
         </div>
       </div>
 
-      {/* Action Architecture */}
-      <div className="mt-16 md:mt-24 group">
-        <Link to="/movies/home" className="relative inline-flex items-center gap-4 px-12 py-5 bg-white text-black rounded-2xl overflow-hidden transition-all duration-300 hover:pr-16 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-          <span className="font-black text-[12px] uppercase tracking-[0.3em] relative z-10">
-            Initialize Cinema
+      {/* Action Hub */}
+      <div className="mt-8 w-full max-w-xs sm:max-w-none relative z-10">
+        <Link
+          to="/movies/home"
+          className="group relative inline-flex w-full sm:w-auto items-center justify-center gap-3 px-12 py-4 bg-zinc-100 text-zinc-950 rounded-xl overflow-hidden transition-all duration-200 hover:bg-emerald-400 active:scale-95 shadow-lg shadow-black/40"
+        >
+          <span className="font-black text-xs uppercase tracking-widest">
+            Open Movies
           </span>
-          <Play size={18} fill="black" className="relative z-10" />
-          
-          {/* Subtle button sweep effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-lab-emerald to-lab-cobalt opacity-0 group-hover:opacity-10 transition-opacity" />
+          <Play size={13} fill="currentColor" />
         </Link>
 
-        {/* Meta Stats */}
-        <div className="mt-8 flex justify-center gap-8 font-mono text-[9px] text-lab-slate uppercase tracking-widest opacity-40">
-          <span className="flex items-center gap-2"><Monitor size={10} /> 4K Ready</span>
-          <span className="flex items-center gap-2"><Layers size={10} /> 500+ Nodes</span>
+        {/* Metadata */}
+        <div className="mt-8 flex justify-center items-center gap-4 font-mono text-[9px] text-zinc-600 uppercase tracking-widest font-medium">
+          <span className="flex items-center gap-1.5">
+            <Monitor size={11} /> 4K Quality
+          </span>
+          <span className="text-zinc-800">•</span>
+          <span className="flex items-center gap-1.5">
+            <Layers size={11} /> 500+ Videos
+          </span>
         </div>
       </div>
     </section>

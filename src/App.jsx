@@ -22,6 +22,7 @@ import ResultsPage from "./pages/ResultsPage";
 import Movies from "./pages/Movies";
 import MoviesHome from "./pages/MoviesHome";
 import MovieDetails from "./pages/MovieDetails";
+import Watchlist from "./pages/Watchlist";
 
 // Alcodist Hub
 import AlcodistHub from "./pages/AlcodistHub";
@@ -57,6 +58,7 @@ const router = createBrowserRouter(
       {/* Movies */}
       <Route path="/movies" element={<Movies />} />
       <Route path="/movies/home" element={<MoviesHome />} />
+      <Route path="/movies/watchlist" element={<Watchlist />} />
 
       {/* Dynamic route for movie or TV details */}
       <Route path="/movies/home/:type/:id" element={<MovieDetails />} />

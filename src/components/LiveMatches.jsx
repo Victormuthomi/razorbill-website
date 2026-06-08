@@ -1,76 +1,99 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Activity, Radio, PlayCircle, Trophy, Zap, Clock } from "lucide-react";
+import { Activity, Tv, Play, Star } from "lucide-react";
 import BASE_URL from "../api";
 
-// MatchCard: Refactored for High-Density Intelligence
-const MatchCard = React.memo(({ match }) => (
-  <div className="group relative bg-obsidian-800/40 border border-lab-emerald/20 rounded-[2rem] p-6 transition-all duration-500 hover:bg-obsidian-700/60 hover:border-lab-emerald/50 backdrop-blur-xl">
-    {/* Live Status Header */}
-    <div className="flex justify-between items-center mb-8">
-      <div className="flex items-center gap-2">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lab-emerald opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-lab-emerald"></span>
-        </span>
-        <span className="font-mono text-[10px] font-bold text-lab-emerald uppercase tracking-[0.2em]">
-          Live Stream Active
-        </span>
-      </div>
-      {match.popular && (
-        <Zap size={14} className="text-lab-cobalt fill-lab-cobalt/20" />
-      )}
-    </div>
+// 1. High-Density, Performant Match Card
+const MatchCard = React.memo(({ match }) => {
+  const homeTeam = match.teams?.home;
+  const awayTeam = match.teams?.away;
 
-    {/* Team Grid */}
-    <div className="flex items-center justify-between gap-2 mb-10">
-      <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="relative group-hover:scale-110 transition-transform duration-500">
-          <img
-            src={match.teams?.home?.badge}
-            alt=""
-            className="w-16 h-16 rounded-full bg-black/40 p-2 object-contain border border-white/5"
-          />
-          <div className="absolute inset-0 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.05)]" />
+  return (
+    <div className="group relative bg-zinc-950 border border-zinc-800 rounded-xl p-5 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/50">
+      {/* Live Status Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+          </span>
+          <span className="font-mono text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+            Live Stream
+          </span>
         </div>
-        <span className="text-[11px] font-black text-white uppercase text-center tracking-tight leading-tight h-8">
-          {match.teams?.home?.name}
-        </span>
+        {match.popular && (
+          <Star size={13} className="text-amber-400 fill-amber-400/20" />
+        )}
       </div>
 
-      <div className="flex flex-col items-center px-2">
-        <span className="font-mono text-[10px] text-lab-slate opacity-30 italic font-black">
-          VS
-        </span>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="relative group-hover:scale-110 transition-transform duration-500">
-          <img
-            src={match.teams?.away?.badge}
-            alt=""
-            className="w-16 h-16 rounded-full bg-black/40 p-2 object-contain border border-white/5"
-          />
-          <div className="absolute inset-0 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.05)]" />
+      {/* Versus Grid Layout */}
+      <div className="grid grid-cols-7 items-center gap-2 mb-8">
+        {/* Home Team */}
+        <div className="col-span-3 flex flex-col items-center gap-3">
+          {/* Soft Square Badge Frame - Prevents Rectangular Badges from Squishing */}
+          <div className="h-16 w-16 rounded-xl bg-zinc-900 border border-zinc-800/80 p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
+            {homeTeam?.badge ? (
+              <img
+                src={homeTeam.badge}
+                alt={`${homeTeam.name || "Home"} crest`}
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <div className="text-xs text-zinc-500 font-mono font-bold uppercase">
+                {homeTeam?.name?.slice(0, 2) || "H"}
+              </div>
+            )}
+          </div>
+          <span className="text-xs font-bold text-zinc-200 uppercase text-center line-clamp-2 min-h-[2rem] px-1">
+            {homeTeam?.name || "Home Team"}
+          </span>
         </div>
-        <span className="text-[11px] font-black text-white uppercase text-center tracking-tight leading-tight h-8">
-          {match.teams?.away?.name}
-        </span>
+
+        {/* Divider Text */}
+        <div className="col-span-1 flex justify-center">
+          <span className="font-mono text-[10px] text-zinc-600 font-bold tracking-widest">
+            VS
+          </span>
+        </div>
+
+        {/* Away Team */}
+        <div className="col-span-3 flex flex-col items-center gap-3">
+          {/* Soft Square Badge Frame - Prevents Rectangular Badges from Squishing */}
+          <div className="h-16 w-16 rounded-xl bg-zinc-900 border border-zinc-800/80 p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
+            {awayTeam?.badge ? (
+              <img
+                src={awayTeam.badge}
+                alt={`${awayTeam.name || "Away"} crest`}
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <div className="text-xs text-zinc-500 font-mono font-bold uppercase">
+                {awayTeam?.name?.slice(0, 2) || "A"}
+              </div>
+            )}
+          </div>
+          <span className="text-xs font-bold text-zinc-200 uppercase text-center line-clamp-2 min-h-[2rem] px-1">
+            {awayTeam?.name || "Away Team"}
+          </span>
+        </div>
+      </div>
+
+      {/* Call to Action Button */}
+      <div className="pt-4 border-t border-zinc-800">
+        <Link
+          to={`/matches/${match.id}`}
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 font-mono text-[11px] uppercase tracking-wider hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all duration-200 font-bold"
+        >
+          <Play size={12} className="fill-current" /> Watch Live Stream
+        </Link>
       </div>
     </div>
+  );
+});
 
-    {/* Action Footer */}
-    <div className="pt-6 border-t border-white/5">
-      <Link
-        to={`/matches/${match.id}`}
-        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-lab-emerald text-white font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all shadow-lg shadow-lab-emerald/10"
-      >
-        <PlayCircle size={16} /> Enter Theatre Mode
-      </Link>
-    </div>
-  </div>
-));
+MatchCard.displayName = "MatchCard";
 
+// 2. Core Screen Stream Aggregator Component
 const LiveMatches = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,53 +101,72 @@ const LiveMatches = () => {
 
   useEffect(() => {
     let mounted = true;
+
     const fetchMatches = async () => {
       try {
-        setLoading(true);
-        // Senior Move: Parallel Fetching for speed
+        // Parallelized network fetching matching original endpoints exactly
         const [liveRes, todayRes] = await Promise.all([
           fetch(`${BASE_URL}/api/matches/live/popular`),
           fetch(`${BASE_URL}/api/matches/today/popular`),
         ]);
 
-        if (!liveRes.ok || !todayRes.ok)
-          throw new Error("Synchronization Error");
+        if (!liveRes.ok || !todayRes.ok) {
+          throw new Error("Failed to synchronize active match lists.");
+        }
 
         const liveData = await liveRes.json();
         const todayData = await todayRes.json();
 
+        // Safety verification check: verify data payloads are iterable arrays
+        const safeLiveData = Array.isArray(liveData) ? liveData : [];
+        const safeTodayData = Array.isArray(todayData) ? todayData : [];
+
+        // Map team name keys to specific fallback badge assets
         const badgeMap = {};
-        todayData.forEach((m) => {
-          if (m.teams?.home?.badge)
+        safeTodayData.forEach((m) => {
+          if (m.teams?.home?.badge && m.teams?.home?.name) {
             badgeMap[m.teams.home.name] = m.teams.home.badge;
-          if (m.teams?.away?.badge)
+          }
+          if (m.teams?.away?.badge && m.teams?.away?.name) {
             badgeMap[m.teams.away.name] = m.teams.away.badge;
+          }
         });
 
-        const mergedMatches = liveData.map((m) => ({
+        // Merge assets back safely into active live elements
+        const mergedMatches = safeLiveData.map((m) => ({
           ...m,
           teams: {
             home: {
               ...m.teams?.home,
-              badge: badgeMap[m.teams?.home?.name] || m.teams?.home?.badge,
+              badge:
+                badgeMap[m.teams?.home?.name] || m.teams?.home?.badge || "",
             },
             away: {
               ...m.teams?.away,
-              badge: badgeMap[m.teams?.away?.name] || m.teams?.away?.badge,
+              badge:
+                badgeMap[m.teams?.away?.name] || m.teams?.away?.badge || "",
             },
           },
         }));
 
-        if (mounted) setMatches(mergedMatches);
+        if (mounted) {
+          setMatches(mergedMatches);
+          setError(null);
+        }
       } catch (err) {
-        if (mounted) setError(err.message);
+        if (mounted) {
+          setError(err.message);
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchMatches();
-    // Refresh every 60 seconds to keep the "Live" feel
+
+    // Auto-refresh network poll cycling every 60 seconds
     const interval = setInterval(fetchMatches, 60000);
     return () => {
       mounted = false;
@@ -132,45 +174,59 @@ const LiveMatches = () => {
     };
   }, []);
 
+  // Performance sorting strategy: Elevated prioritization tier metrics
   const sortedMatches = useMemo(() => {
-    return [...matches].sort((a, b) =>
-      a.popular === b.popular ? 0 : a.popular ? -1 : 1
-    );
+    return [...matches].sort((a, b) => {
+      if (a.popular === b.popular) return 0;
+      return a.popular ? -1 : 1;
+    });
   }, [matches]);
 
-  if (loading)
+  // Loading Screen State
+  if (loading && matches.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 space-y-6">
-        <Radio className="text-lab-emerald animate-pulse" size={48} />
-        <p className="font-mono text-[10px] uppercase tracking-[0.5em] text-lab-slate">
-          Scanning Satellite Uplinks...
+      <div className="flex flex-col items-center justify-center py-32 space-y-4">
+        <Tv className="text-zinc-600 animate-pulse" size={32} />
+        <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-500">
+          Loading live match feeds...
         </p>
       </div>
     );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12">
-      {/* Header Telemetry */}
-      <div className="flex flex-col items-center text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-lab-emerald/30 bg-lab-emerald/5 text-lab-emerald text-[10px] font-mono uppercase tracking-[0.2em]">
-          <Activity size={12} /> Live Transmission
+    <div className="max-w-7xl mx-auto px-2 py-6 space-y-8">
+      {/* Feed Information Headers */}
+      <div className="flex flex-col items-center text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
+          <Activity size={10} className="text-emerald-400" /> Active
+          Transmissions
         </div>
-        <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">
-          Global<span className="text-lab-emerald">.Live</span>
+        <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight">
+          Live Matches
         </h2>
-        <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       </div>
 
+      {/* Error state safe alerts */}
+      {error && (
+        <div className="max-w-md mx-auto p-4 rounded-lg bg-zinc-900 border border-red-900/30 text-center">
+          <p className="text-xs text-zinc-400 font-mono">
+            Connection issue: {error}. Attempting auto-reconnect...
+          </p>
+        </div>
+      )}
+
+      {/* Main Grid Render State */}
       {sortedMatches.length === 0 ? (
-        <div className="text-center py-32 border border-dashed border-white/5 rounded-[3rem]">
-          <p className="font-mono text-xs text-lab-slate uppercase tracking-widest opacity-40 italic">
-            No Active Uplinks Detected
+        <div className="text-center py-24 border border-dashed border-zinc-800 rounded-xl bg-zinc-950/30">
+          <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest">
+            No live matches are streaming right now
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedMatches.map((match) => (
-            <MatchCard key={match.id} match={match} />
+            <MatchCard key={match.id || Math.random()} match={match} />
           ))}
         </div>
       )}

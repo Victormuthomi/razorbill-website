@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Activity, Calendar, Trophy, BarChart3 } from "lucide-react";
 import LiveMatches from "../components/LiveMatches";
 import TodaysMatches from "../components/TodaysMatches";
@@ -6,12 +6,10 @@ import Results from "../components/Results";
 import razor from "../assets/razor.jpeg";
 
 export default function MatchesPage() {
-  // Tabs: Live, Scheduled (Today), Results
-  const [activeTab, setActiveTab] = useState("live");
-
+  // Premium background blend utilizing unified deep zinc tones
   const backgroundStyle = useMemo(
     () => ({
-      backgroundImage: `linear-gradient(to bottom, rgba(10, 10, 15, 0.8), rgba(10, 10, 15, 0.95)), url(${razor})`,
+      backgroundImage: `linear-gradient(to bottom, rgba(9, 9, 11, 0.85), rgba(9, 9, 11, 0.98)), url(${razor})`,
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundAttachment: "fixed",
@@ -19,85 +17,82 @@ export default function MatchesPage() {
     []
   );
 
-  const tabs = [
-    { id: "live", label: "Live Uplinks", icon: <Activity size={16} /> },
-    { id: "today", label: "Today's Schedule", icon: <Calendar size={16} /> },
-    { id: "results", label: "Historical Data", icon: <BarChart3 size={16} /> },
-  ];
-
   return (
     <div
-      className="min-h-screen transition-all duration-700"
+      className="min-h-screen text-zinc-100 selection:bg-emerald-500 selection:text-black"
       style={backgroundStyle}
     >
-      {/* Header Intelligence */}
-      <header className="pt-16 pb-8 px-6 text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-lab-slate text-[10px] font-mono uppercase tracking-[0.3em]">
-          <Trophy size={12} className="text-lab-emerald" /> Tournament
-          Intelligence Node
+      {/* 1. Dashboard Master Header */}
+      <header className="pt-16 pb-12 px-4 text-center space-y-3 max-w-xl mx-auto">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-zinc-800 bg-zinc-950/60 backdrop-blur-md text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
+          <Trophy size={11} className="text-emerald-400" /> Live Broadcasting
+          Hub
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-black text-white italic uppercase tracking-tighter">
-          MATCH
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-lab-emerald to-lab-cobalt">
-            .CENTRE
-          </span>
+        <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight">
+          Match Center
         </h1>
 
-        <p className="font-mono text-[10px] md:text-xs text-lab-slate uppercase tracking-[0.4em] opacity-60">
-          Real-time telemetry and global match archiving.
+        <p className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest leading-relaxed">
+          Real-time event streams, daily programming schedules, and historical
+          data archives.
         </p>
       </header>
 
-      {/* Segmented Control (The Tab Switcher) */}
-      <div className="sticky top-20 z-40 flex justify-center px-4 pb-10">
-        <div className="inline-flex p-1.5 bg-obsidian-900/80 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-2xl">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                flex items-center gap-3 px-6 py-3 rounded-xl font-mono text-[10px] uppercase tracking-widest transition-all duration-300
-                ${
-                  activeTab === tab.id
-                    ? "bg-white text-black font-black shadow-lg"
-                    : "text-lab-slate hover:text-white hover:bg-white/5"
-                }
-              `}
-            >
-              {tab.icon}
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Viewport: Dynamic Content Loading */}
-      <main className="max-w-7xl mx-auto pb-20 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {activeTab === "live" && (
-          <div className="space-y-6">
+      {/* 2. Unified Scroll Content Stream */}
+      <main className="max-w-7xl mx-auto pb-24 px-4 space-y-20">
+        {/* SECTION A: ACTIVE LIVE TRANMISSIONS (Top Priority) */}
+        <section className="relative group">
+          <div className="absolute -inset-y-4 -inset-x-2 bg-zinc-900/10 rounded-2xl group-hover:bg-zinc-900/20 transition-colors duration-500 pointer-events-none" />
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-3 px-2">
+              <div className="flex items-center justify-center h-7 w-7 rounded-md bg-emerald-950 border border-emerald-900/60 text-emerald-400">
+                <Activity size={14} className="animate-pulse" />
+              </div>
+              <h3 className="font-mono text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                Live Channels
+              </h3>
+            </div>
             <LiveMatches />
           </div>
-        )}
+        </section>
 
-        {activeTab === "today" && (
-          <div className="space-y-6">
+        {/* SECTION B: UPCOMING SCHEDULE FOR TODAY */}
+        <section className="relative group">
+          <div className="absolute -inset-y-4 -inset-x-2 bg-zinc-900/10 rounded-2xl group-hover:bg-zinc-900/20 transition-colors duration-500 pointer-events-none" />
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-3 px-2">
+              <div className="flex items-center justify-center h-7 w-7 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
+                <Calendar size={14} />
+              </div>
+              <h3 className="font-mono text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                Upcoming Fixtures
+              </h3>
+            </div>
             <TodaysMatches />
           </div>
-        )}
+        </section>
 
-        {activeTab === "results" && (
-          <div className="space-y-6">
+        {/* SECTION C: HISTORICAL RESULTS ARCHIVE */}
+        <section className="relative group border-t border-zinc-900 pt-16">
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-3 px-2">
+              <div className="flex items-center justify-center h-7 w-7 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
+                <BarChart3 size={14} />
+              </div>
+              <h3 className="font-mono text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                Recent Results
+              </h3>
+            </div>
             <Results />
           </div>
-        )}
+        </section>
       </main>
 
-      {/* Global Footer Meta */}
-      <footer className="py-10 border-t border-white/5 flex flex-col items-center gap-4">
-        <div className="h-px w-16 bg-gradient-to-r from-transparent via-lab-emerald to-transparent" />
-        <p className="font-mono text-[8px] text-lab-slate uppercase tracking-[0.5em] opacity-40">
-          Alcodist Infrastructure Protocol v3.1
+      {/* 3. Global Dashboard Footer */}
+      <footer className="py-12 border-t border-zinc-900 flex flex-col items-center justify-center space-y-2 bg-zinc-950/40 backdrop-blur-sm">
+        <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
+          &copy; {new Date().getFullYear()} Sports Streaming Platform
         </p>
       </footer>
     </div>
