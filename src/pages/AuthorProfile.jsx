@@ -1,4 +1,3 @@
-// src/pages/AuthorProfile.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { AUTHOR_URL, BLOG_URL } from "../api";
@@ -36,12 +35,11 @@ const AuthorProfile = () => {
         const authorData = data.author || data;
         setAuthor(authorData);
 
-        // fetch blogs only for public profiles
         if (!privateView) {
           const blogsRes = await fetch(`${BLOG_URL}/author/${id}`);
           if (blogsRes.ok) {
-            const blogsData = await blogsRes.json(); // <- endpoint returns array directly
-            setBlogs(blogsData); // save directly
+            const blogsData = await blogsRes.json();
+            setBlogs(blogsData);
           }
         }
       } catch (err) {
@@ -56,141 +54,135 @@ const AuthorProfile = () => {
   }, [id, token, localAuthorId, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("authorToken");
-    localStorage.removeItem("authorId");
+    localStorage.clear();
     navigate("/authors/login");
   };
 
   if (loading)
     return (
-      <div className="text-white text-center py-10">Loading profile...</div>
+      <div className="min-h-screen bg-zinc-950 text-zinc-500 flex items-center justify-center font-bold uppercase tracking-widest text-xs">
+        Loading...
+      </div>
     );
+
   if (!author)
     return (
-      <div className="text-white text-center py-10">Profile not found</div>
+      <div className="min-h-screen bg-zinc-950 text-zinc-500 flex items-center justify-center font-bold uppercase tracking-widest text-xs">
+        Profile not found
+      </div>
     );
 
   return (
-    <div className="min-h-screen bg-black/80 flex flex-col items-center p-6 md:p-12 text-white">
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center p-6 md:p-12 text-white">
       <Link
         to={isPrivate ? "/authors/dashboard" : "/"}
-        className="self-start mb-4 flex items-center gap-2 text-yellow-400 hover:text-yellow-500"
+        className="self-start mb-12 flex items-center gap-2 text-zinc-500 hover:text-emerald-500 transition text-xs font-bold uppercase tracking-widest"
       >
-        <AiOutlineArrowLeft /> {isPrivate ? "Back to Dashboard" : "Back"}
+        <AiOutlineArrowLeft /> Back
       </Link>
 
-      <div className="bg-black/60 p-8 rounded-xl border border-gray-700 w-full max-w-md flex flex-col items-center gap-6">
+      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl w-full max-w-sm flex flex-col items-center gap-6">
         {/* Avatar */}
-        {author.avatar_url ? (
-          <img
-            src={author.avatar_url}
-            alt={author.name}
-            className="w-32 h-32 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-32 h-32 rounded-full bg-gray-700 flex items-center justify-center text-2xl">
-            {author.name?.[0]?.toUpperCase() || "A"}
-          </div>
-        )}
+        <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-zinc-700">
+          {author.avatar_url ? (
+            <img
+              src={author.avatar_url}
+              alt={author.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-3xl font-black text-zinc-500">
+              {author.name?.[0]?.toUpperCase()}
+            </span>
+          )}
+        </div>
 
-        {/* Name */}
-        <h1 className="text-3xl font-bold text-yellow-400">{author.name}</h1>
-
-        {/* Bio */}
-        {author.bio && (
-          <p className="text-gray-300 text-center">{author.bio}</p>
-        )}
+        <div className="text-center">
+          <h1 className="text-2xl font-black tracking-tighter mb-2">
+            {author.name}
+          </h1>
+          {author.bio && <p className="text-zinc-500 text-sm">{author.bio}</p>}
+        </div>
 
         {isPrivate ? (
-          <>
-            {author.email && (
-              <p className="w-full text-left text-gray-300 mt-2">
-                <span className="font-semibold text-white">Email:</span>{" "}
-                {author.email}
+          <div className="w-full space-y-4">
+            <div className="space-y-1">
+              <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+                Email
               </p>
-            )}
+              <p className="text-sm">{author.email}</p>
+            </div>
             {author.phone && (
-              <p className="w-full text-left text-gray-300">
-                <span className="font-semibold text-white">Phone:</span>{" "}
-                {author.phone}
-              </p>
+              <div className="space-y-1">
+                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+                  Phone
+                </p>
+                <p className="text-sm">{author.phone}</p>
+              </div>
             )}
-            {author.created_at && (
-              <p className="w-full text-left text-gray-300">
-                <span className="font-semibold text-white">Joined:</span>{" "}
-                {new Date(author.created_at).toLocaleDateString()}
-              </p>
-            )}
-
-            {/* Actions */}
-            <div className="w-full flex flex-col gap-2 mt-4">
+            <div className="pt-6 border-t border-zinc-800 flex flex-col gap-2">
               <Link
                 to={`/authors/edit/${id}`}
-                className="bg-yellow-400 text-black px-6 py-2 rounded-xl font-semibold hover:bg-yellow-500 flex items-center justify-center gap-2"
+                className="w-full bg-emerald-500 text-zinc-950 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-400 transition"
               >
                 <AiOutlineEdit /> Edit Profile
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-red-700 flex items-center justify-center gap-2"
+                className="w-full bg-zinc-800 text-zinc-400 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:text-red-400 transition"
               >
                 <AiOutlineLogout /> Logout
               </button>
             </div>
-          </>
+          </div>
         ) : (
-          // Public: show blogs
-          <>
+          <div className="w-full pt-6 border-t border-zinc-800">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-6">
+              Entries by {author.name}
+            </h2>
             {blogs.length === 0 ? (
-              <p className="text-gray-300 mt-4">No blogs yet.</p>
+              <p className="text-zinc-600 text-xs text-center">
+                No entries found.
+              </p>
             ) : (
-              <div className="w-full mt-6">
-                <h2 className="text-xl text-yellow-400 font-semibold mb-4">
-                  Blogs by {author.name}
-                </h2>
-                <div className="flex flex-col gap-4">
-                  {blogs.slice(0, 5).map(({ blog }) => (
-                    <Link
-                      key={blog.id}
-                      to={`/blogs/${blog.id}`}
-                      className="flex gap-3 items-center bg-black/50 p-3 rounded-xl border border-gray-700 hover:border-yellow-400 transition"
-                    >
+              <div className="flex flex-col gap-4">
+                {blogs.slice(0, 5).map(({ blog }) => (
+                  <Link
+                    key={blog.id}
+                    to={`/blogs/${blog.id}`}
+                    className="flex gap-4 items-center bg-zinc-950 p-3 rounded-xl border border-zinc-800 hover:border-emerald-500 transition"
+                  >
+                    <div className="w-12 h-12 bg-zinc-900 rounded-lg flex-shrink-0 flex items-center justify-center">
                       {blog.image_url ? (
                         <img
                           src={blog.image_url}
-                          alt={blog.title}
-                          className="w-16 h-16 object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (
-                        <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center text-sm text-gray-300">
-                          No Image
-                        </div>
+                        <span className="text-[10px] text-zinc-600">N/A</span>
                       )}
-                      <div className="flex-1">
-                        <h3 className="text-yellow-400 font-semibold">
-                          {blog.title}
-                        </h3>
-                        <p className="text-gray-300 text-sm line-clamp-2">
-                          {blog.content
-                            .replace(/<\/?[^>]+(>|$)/g, "")
-                            .slice(0, 80)}
-                          {blog.content.length > 80 ? "..." : ""}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold leading-tight">
+                        {blog.title}
+                      </h3>
+                      <p className="text-[10px] text-zinc-500 line-clamp-1 mt-1">
+                        {blog.content.replace(/<\/?[^>]+(>|$)/g, "")}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
                 {blogs.length > 5 && (
                   <Link
                     to={`/blogs/author/${id}`}
-                    className="mt-4 inline-block text-yellow-400 font-semibold hover:underline"
+                    className="text-xs font-bold text-emerald-500 hover:underline mt-2"
                   >
-                    View More Blogs
+                    View More
                   </Link>
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

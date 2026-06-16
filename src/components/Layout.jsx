@@ -1,8 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, NavLink, Link } from "react-router-dom";
-import { Home, Trophy, Film, MessageSquare, BookOpen } from "lucide-react";
+import {
+  Home,
+  Trophy,
+  Film,
+  MessageSquare,
+  BookOpen,
+  Infinity,
+} from "lucide-react";
 
 const Layout = () => {
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+
   const navItems = [
     { path: "/", icon: <Home size={20} />, label: "home" },
     { path: "/matches", icon: <Trophy size={20} />, label: "sports" },
@@ -14,18 +23,30 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500 selection:text-black">
       {/* 1. Premium Expanding Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 hidden h-full w-20 hover:w-52 flex-col items-start px-4 border-r border-zinc-900 bg-zinc-950 py-8 md:flex z-50 transition-all duration-300 ease-in-out group/sidebar shadow-2xl">
+      <aside
+        onMouseEnter={() => setIsSidebarHovered(true)}
+        onMouseLeave={() => setIsSidebarHovered(false)}
+        className="fixed left-0 top-0 hidden h-full w-20 hover:w-52 flex-col items-start px-4 border-r border-zinc-900 bg-zinc-950 py-8 md:flex z-50 transition-all duration-300 ease-in-out group/sidebar shadow-2xl"
+      >
         {/* Dynamic Brand Lockup */}
         <Link
           to="/"
           className="mb-12 w-full flex items-center justify-center group-hover/sidebar:justify-start transition-all duration-300 flex-shrink-0"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-emerald-400 font-extrabold tracking-wider text-lg transition-all group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:text-white shadow-md flex-shrink-0">
-            A
+          {/* Infinity Asset Slot */}
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-emerald-400 transition-all group-hover:scale-105 group-hover:border-emerald-500/40 group-hover:text-white shadow-md flex-shrink-0">
+            <Infinity size={22} className="stroke-[2.5]" />
           </div>
-          <span className="opacity-0 max-w-0 overflow-hidden whitespace-nowrap font-black tracking-tight text-white uppercase text-sm transition-all duration-300 ease-in-out group-hover/sidebar:opacity-100 group-hover/sidebar:max-w-xs group-hover/sidebar:ml-3">
-            ALCODIST
-          </span>
+
+          {/* Unified Expandable Text Component */}
+          <div className="opacity-0 max-w-0 overflow-hidden whitespace-nowrap flex items-center gap-1.5 transition-all duration-300 ease-in-out group-hover/sidebar:opacity-100 group-hover/sidebar:max-w-xs group-hover/sidebar:ml-3">
+            <span className="text-sm font-black tracking-tight text-white uppercase">
+              ALCODIST
+            </span>
+            <span className="bg-emerald-400 text-zinc-950 text-[10px] font-mono font-black px-1.5 py-0.5 rounded uppercase tracking-widest shadow-md shadow-emerald-500/10">
+              HUB
+            </span>
+          </div>
         </Link>
 
         {/* Dynamic Navigation Options */}
@@ -55,8 +76,14 @@ const Layout = () => {
 
       {/* 2. Main Site Stage */}
       <div className="relative flex flex-col min-h-screen md:pl-20">
-        {/* Persistent Responsive App Header */}
-        <header className="flex h-16 items-center justify-between px-4 sm:px-6 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 gap-2">
+        {/* Persistent Responsive App Header (Fades out when sidebar is open) */}
+        <header
+          className={`flex h-16 items-center justify-between px-4 sm:px-6 border-b border-zinc-900 bg-zinc-950 sticky top-0 z-40 gap-2 transition-all duration-300 ease-in-out ${
+            isSidebarHovered
+              ? "md:opacity-0 md:pointer-events-none"
+              : "md:opacity-100"
+          }`}
+        >
           <Link
             to="/"
             className="flex items-center gap-2 min-w-0 group flex-shrink-0"
@@ -98,7 +125,7 @@ const Layout = () => {
       </div>
 
       {/* 3. Mobile Navigation Dock */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-around border-t border-zinc-900 bg-zinc-950/95 backdrop-blur-md md:hidden px-2 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-around border-t border-zinc-900 bg-zinc-950 md:hidden px-2 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
         {navItems.map((item) => (
           <NavLink
             key={item.path}

@@ -30,13 +30,13 @@ const MatchCard = React.memo(({ match }) => {
       <div className="grid grid-cols-7 items-center gap-2 mb-8">
         {/* Home Team */}
         <div className="col-span-3 flex flex-col items-center gap-3">
-          {/* Soft Square Badge Frame - Prevents Rectangular Badges from Squishing */}
           <div className="h-16 w-16 rounded-xl bg-zinc-900 border border-zinc-800/80 p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
             {homeTeam?.badge ? (
               <img
                 src={homeTeam.badge}
                 alt={`${homeTeam.name || "Home"} crest`}
                 className="max-w-full max-h-full object-contain"
+                loading="lazy"
               />
             ) : (
               <div className="text-xs text-zinc-500 font-mono font-bold uppercase">
@@ -58,13 +58,13 @@ const MatchCard = React.memo(({ match }) => {
 
         {/* Away Team */}
         <div className="col-span-3 flex flex-col items-center gap-3">
-          {/* Soft Square Badge Frame - Prevents Rectangular Badges from Squishing */}
           <div className="h-16 w-16 rounded-xl bg-zinc-900 border border-zinc-800/80 p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
             {awayTeam?.badge ? (
               <img
                 src={awayTeam.badge}
                 alt={`${awayTeam.name || "Away"} crest`}
                 className="max-w-full max-h-full object-contain"
+                loading="lazy"
               />
             ) : (
               <div className="text-xs text-zinc-500 font-mono font-bold uppercase">
@@ -95,16 +95,30 @@ MatchCard.displayName = "MatchCard";
 
 // 2. Core Screen Stream Aggregator Component
 const LiveMatches = () => {
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // --- 1. HYDRATE STATE IMMEDIATELY FROM LOCAL STORAGE ---
+  const [matches, setMatches] = useState(() => {
+    try {
+      const cached = localStorage.getItem("razorbill_live_matches");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const hasCachedData = matches.length > 0;
+  // If we have cached data, bypass the loading screen entirely
+  const [loading, setLoading] = useState(!hasCachedData);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let mounted = true;
 
-    const fetchMatches = async () => {
+    const fetchMatches = async (isBackground = false) => {
       try {
-        // Parallelized network fetching matching original endpoints exactly
+        if (!isBackground) setLoading(true);
+        setIsSyncing(true);
+
         const [liveRes, todayRes] = await Promise.all([
           fetch(`${BASE_URL}/api/matches/live/popular`),
           fetch(`${BASE_URL}/api/matches/today/popular`),
@@ -117,41 +131,47 @@ const LiveMatches = () => {
         const liveData = await liveRes.json();
         const todayData = await todayRes.json();
 
-        // Safety verification check: verify data payloads are iterable arrays
         const safeLiveData = Array.isArray(liveData) ? liveData : [];
         const safeTodayData = Array.isArray(todayData) ? todayData : [];
 
-        // Map team name keys to specific fallback badge assets
         const badgeMap = {};
         safeTodayData.forEach((m) => {
-          if (m.teams?.home?.badge && m.teams?.home?.name) {
+          if (m?.teams?.home?.name && m?.teams?.home?.badge) {
             badgeMap[m.teams.home.name] = m.teams.home.badge;
           }
-          if (m.teams?.away?.badge && m.teams?.away?.name) {
+          if (m?.teams?.away?.name && m?.teams?.away?.badge) {
             badgeMap[m.teams.away.name] = m.teams.away.badge;
           }
         });
 
-        // Merge assets back safely into active live elements
-        const mergedMatches = safeLiveData.map((m) => ({
-          ...m,
-          teams: {
-            home: {
-              ...m.teams?.home,
-              badge:
-                badgeMap[m.teams?.home?.name] || m.teams?.home?.badge || "",
+        const mergedMatches = safeLiveData.map((m) => {
+          const homeName = m?.teams?.home?.name;
+          const awayName = m?.teams?.away?.name;
+
+          return {
+            ...m,
+            id: m.id || `live-${homeName}-${awayName}`,
+            teams: {
+              home: {
+                ...(m?.teams?.home || {}),
+                badge: badgeMap[homeName] || m?.teams?.home?.badge || "",
+              },
+              away: {
+                ...(m?.teams?.away || {}),
+                badge: badgeMap[awayName] || m?.teams?.away?.badge || "",
+              },
             },
-            away: {
-              ...m.teams?.away,
-              badge:
-                badgeMap[m.teams?.away?.name] || m.teams?.away?.badge || "",
-            },
-          },
-        }));
+          };
+        });
 
         if (mounted) {
           setMatches(mergedMatches);
           setError(null);
+          // --- 2. UPDATE PERSISTENT CACHE SILENTLY ---
+          localStorage.setItem(
+            "razorbill_live_matches",
+            JSON.stringify(mergedMatches)
+          );
         }
       } catch (err) {
         if (mounted) {
@@ -160,29 +180,34 @@ const LiveMatches = () => {
       } finally {
         if (mounted) {
           setLoading(false);
+          setIsSyncing(false);
         }
       }
     };
 
-    fetchMatches();
+    // Trigger immediate sync on mount. Pass true if cached snapshots exist to avoid full page masking.
+    fetchMatches(hasCachedData);
 
-    // Auto-refresh network poll cycling every 60 seconds
-    const interval = setInterval(fetchMatches, 60000);
+    // --- 3. AUTONOMOUS INTERVAL LOOP (Every 30 seconds) ---
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchMatches(true);
+      }
+    }, 30000);
+
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [hasCachedData]);
 
-  // Performance sorting strategy: Elevated prioritization tier metrics
   const sortedMatches = useMemo(() => {
     return [...matches].sort((a, b) => {
-      if (a.popular === b.popular) return 0;
+      if (!!a.popular === !!b.popular) return 0;
       return a.popular ? -1 : 1;
     });
   }, [matches]);
 
-  // Loading Screen State
   if (loading && matches.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 space-y-4">
@@ -197,10 +222,20 @@ const LiveMatches = () => {
   return (
     <div className="max-w-7xl mx-auto px-2 py-6 space-y-8">
       {/* Feed Information Headers */}
-      <div className="flex flex-col items-center text-center space-y-2">
+      <div className="flex flex-col items-center text-center space-y-2 relative">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
-          <Activity size={10} className="text-emerald-400" /> Active
-          Transmissions
+          <Activity
+            size={10}
+            className={
+              isSyncing ? "text-emerald-400 animate-spin" : "text-emerald-400"
+            }
+          />
+          Active Transmissions
+          {isSyncing && (
+            <span className="text-[9px] text-zinc-500 normal-case ml-1 tracking-normal">
+              (updating...)
+            </span>
+          )}
         </div>
         <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight">
           Live Matches
@@ -209,9 +244,9 @@ const LiveMatches = () => {
 
       {/* Error state safe alerts */}
       {error && (
-        <div className="max-w-md mx-auto p-4 rounded-lg bg-zinc-900 border border-red-900/30 text-center">
-          <p className="text-xs text-zinc-400 font-mono">
-            Connection issue: {error}. Attempting auto-reconnect...
+        <div className="max-w-md mx-auto p-4 rounded-lg bg-zinc-950 border border-red-900/30 text-center">
+          <p className="text-xs text-zinc-500 font-mono">
+            Sync Error: {error}. Using local snapshots.
           </p>
         </div>
       )}
@@ -226,7 +261,7 @@ const LiveMatches = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedMatches.map((match) => (
-            <MatchCard key={match.id || Math.random()} match={match} />
+            <MatchCard key={match.id} match={match} />
           ))}
         </div>
       )}

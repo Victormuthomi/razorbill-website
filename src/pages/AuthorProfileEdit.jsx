@@ -1,4 +1,3 @@
-// src/pages/AuthorProfileEdit.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { AUTHOR_URL } from "../api";
@@ -34,7 +33,6 @@ const AuthorProfileEdit = () => {
   const [countryCode, setCountryCode] = useState("+254");
   const [avatarFile, setAvatarFile] = useState(null);
 
-  // Fetch author details
   const fetchAuthor = async () => {
     if (!authorId || !token) {
       setError("Missing author information. Please login again.");
@@ -49,7 +47,6 @@ const AuthorProfileEdit = () => {
       const data = await res.json();
       const a = data.author || data;
 
-      // Split phone into country code + number if possible
       let code = "+254";
       let number = a.phone || "";
       if (a.phone?.startsWith("+") && a.phone.length > 3) {
@@ -87,7 +84,7 @@ const AuthorProfileEdit = () => {
     setSuccess("");
 
     if (password && !isStrongPassword(password)) {
-      setError("Password too weak. Example: StrongPass123!");
+      setError("Password too weak (8+ chars, Uppercase, Number).");
       return;
     }
 
@@ -95,7 +92,6 @@ const AuthorProfileEdit = () => {
     try {
       let avatarUrl = author.avatar_url;
 
-      // Upload avatar to Cloudinary if selected
       if (avatarFile) {
         const formData = new FormData();
         formData.append("file", avatarFile);
@@ -153,8 +149,7 @@ const AuthorProfileEdit = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Delete failed");
-      localStorage.removeItem("authorToken");
-      localStorage.removeItem("authorId");
+      localStorage.clear();
       navigate("/");
     } catch (err) {
       console.error(err);
@@ -165,48 +160,55 @@ const AuthorProfileEdit = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center py-12 px-6">
       <Link
         to="/authors/dashboard"
-        className="self-start mb-4 flex items-center gap-2 text-yellow-400 hover:text-yellow-500"
+        className="w-full max-w-md mb-8 flex items-center gap-2 text-zinc-500 hover:text-emerald-500 transition text-xs font-bold uppercase tracking-widest"
       >
         <AiOutlineArrowLeft /> Back to Dashboard
       </Link>
 
-      <div className="max-w-xl text-center mb-8">
-        <h1 className="text-4xl font-bold text-yellow-400 mb-4">
-          Edit Profile
-        </h1>
-        <p className="text-gray-200 text-lg">
-          Update your details to keep your profile current.
-        </p>
-      </div>
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
+        <header className="mb-8">
+          <h1 className="text-2xl font-black tracking-tighter text-white">
+            Edit Profile
+          </h1>
+          <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">
+            Update your account details.
+          </p>
+        </header>
 
-      <div className="w-full max-w-md bg-black/60 backdrop-blur-md rounded-2xl p-8 shadow-lg border border-gray-700">
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        {success && <p className="text-green-500 text-sm mb-2">{success}</p>}
+        {(error || success) && (
+          <p
+            className={`text-[10px] font-bold uppercase tracking-widest mb-6 ${
+              error ? "text-red-500" : "text-emerald-500"
+            }`}
+          >
+            {error || success}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Avatar Upload */}
-          <div className="flex justify-center mb-4">
-            <img
-              src={
-                avatarFile
-                  ? URL.createObjectURL(avatarFile)
-                  : author.avatar_url || "/default-avatar.png"
-              }
-              alt="Avatar"
-              className="w-24 h-24 rounded-full object-cover border border-gray-500"
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <div className="w-24 h-24 rounded-full bg-zinc-800 overflow-hidden border border-zinc-700">
+              <img
+                src={
+                  avatarFile
+                    ? URL.createObjectURL(avatarFile)
+                    : author.avatar_url || "/default-avatar.png"
+                }
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setAvatarFile(e.target.files[0])}
+              className="text-[10px] text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700"
             />
           </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setAvatarFile(e.target.files[0])}
-            className="w-full text-white"
-          />
 
-          {/* Name */}
           <input
             type="text"
             placeholder="Full Name"
@@ -214,11 +216,9 @@ const AuthorProfileEdit = () => {
             onChange={(e) =>
               setAuthor((prev) => ({ ...prev, name: e.target.value }))
             }
-            className="w-full px-5 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm focus:outline-none focus:border-emerald-500 transition"
             required
           />
-
-          {/* Email */}
           <input
             type="email"
             placeholder="Email"
@@ -226,64 +226,59 @@ const AuthorProfileEdit = () => {
             onChange={(e) =>
               setAuthor((prev) => ({ ...prev, email: e.target.value }))
             }
-            className="w-full px-5 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm focus:outline-none focus:border-emerald-500 transition"
             required
           />
 
-          {/* Phone */}
           <div className="flex gap-2">
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="px-3 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-400 focus:outline-none focus:border-emerald-500 transition"
             >
-              <option value="+254">+254 (Kenya)</option>
-              <option value="+1">+1 (USA)</option>
-              <option value="+44">+44 (UK)</option>
+              <option value="+254">+254</option>
+              <option value="+1">+1</option>
+              <option value="+44">+44</option>
             </select>
             <input
               type="tel"
-              placeholder="Phone Number"
+              placeholder="712345678"
               value={author.phone}
               onChange={(e) =>
                 setAuthor((prev) => ({ ...prev, phone: e.target.value }))
               }
-              className="flex-1 px-5 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              pattern="\d{9}"
-              title="Enter 9 digits"
+              className="flex-1 px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm focus:outline-none focus:border-emerald-500 transition"
               required
             />
           </div>
 
-          {/* Bio */}
           <textarea
             placeholder="Short Bio"
             value={author.bio}
             onChange={(e) =>
               setAuthor((prev) => ({ ...prev, bio: e.target.value }))
             }
-            className="w-full px-5 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            rows={4}
+            className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm focus:outline-none focus:border-emerald-500 transition"
+            rows={3}
           />
 
-          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               placeholder="New Password (optional)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-5 py-3 rounded-xl bg-gray-800/90 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm focus:outline-none focus:border-emerald-500 transition"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-3 text-gray-400 hover:text-yellow-400"
+              className="absolute right-4 top-3.5 text-zinc-600 hover:text-emerald-500"
             >
               {showPassword ? (
-                <AiOutlineEyeInvisible size={20} />
+                <AiOutlineEyeInvisible size={18} />
               ) : (
-                <AiOutlineEye size={20} />
+                <AiOutlineEye size={18} />
               )}
             </button>
           </div>
@@ -291,16 +286,16 @@ const AuthorProfileEdit = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-xl hover:bg-yellow-500 transition"
+            className="w-full bg-emerald-500 text-zinc-950 font-bold text-xs uppercase tracking-widest py-3 rounded-xl hover:bg-emerald-400 transition"
           >
-            {loading ? "Saving..." : "Save Profile"}
+            {loading ? "Saving..." : "Save Changes"}
           </button>
 
           <button
             type="button"
             onClick={handleDelete}
             disabled={loading}
-            className="w-full bg-red-600 text-white font-semibold py-3 rounded-xl hover:bg-red-700 transition flex items-center justify-center gap-2"
+            className="w-full bg-zinc-800 text-zinc-400 font-bold text-xs uppercase tracking-widest py-3 rounded-xl hover:text-red-400 hover:bg-zinc-800 transition flex items-center justify-center gap-2"
           >
             <AiOutlineDelete /> Delete Account
           </button>

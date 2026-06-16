@@ -1,25 +1,23 @@
-// tailwind.config.js
+import typography from "@tailwindcss/typography";
+
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        // High-end Obsidian Palette
         obsidian: {
-          900: "#050505", // True black depth
-          800: "#0D0D0D", // Main background
-          700: "#1A1A1A", // Cards/Elevated surfaces
-          600: "#262626", // Borders/Dividers
+          900: "#050505",
+          800: "#0D0D0D",
+          700: "#1A1A1A",
+          600: "#262626",
         },
-        // Strategic Accents
         lab: {
-          emerald: "#10B981", // Success/Live matches
-          cobalt: "#3B82F6", // Primary actions
-          slate: "#94A3B8", // Secondary text
+          emerald: "#10B981",
+          cobalt: "#3B82F6",
+          slate: "#94A3B8",
         },
       },
       fontFamily: {
-        // Switching to professional sans + mono pairing
         sans: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
@@ -29,5 +27,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    typography, // Required for Markdown rendering
+  ],
 };

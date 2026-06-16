@@ -1,23 +1,32 @@
-import pen from "../assets/pen.png"; // your custom image
+import React from "react";
+import { Link } from "react-router-dom";
+import pen from "../assets/pen.png";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center text-center text-white px-6 py-12">
-      <h1 className="text-5xl font-bold mb-4">404 - Page Not Found</h1>
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-center p-6 text-white">
+      {/* Visual */}
+      <img src={pen} alt="Lost page" className="w-48 mb-8 opacity-80" />
 
-      <img src={pen} alt="Page not found" className="w-64 md:w-86 mb-6" />
+      {/* Heading */}
+      <h1 className="text-5xl font-black tracking-tighter mb-4">
+        404 <span className="text-zinc-600">/</span> Page Lost
+      </h1>
 
-      <p className="mb-6 text-lg">
-        The page you're looking for doesn’t exist or might be under
-        construction. Check Later
+      {/* Narrative Text */}
+      <p className="text-zinc-400 max-w-sm mb-8 text-sm leading-relaxed">
+        It seems this page has gone missing. Much like a draft forgotten in a
+        notebook, we can't find what you're looking for. It may have been moved,
+        deleted, or perhaps it was never written.
       </p>
 
-      <a
-        href="/"
-        className="bg-white text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-200 transition"
+      {/* Action */}
+      <Link
+        to="/"
+        className="bg-emerald-500 text-zinc-950 px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-emerald-400 transition"
       >
-        Back to Home
-      </a>
+        Return Home
+      </Link>
     </div>
   );
 }

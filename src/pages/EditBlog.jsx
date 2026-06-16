@@ -1,25 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
-import {
-  AiOutlineLogout,
-  AiOutlinePlus,
-  AiOutlineEdit,
-  AiOutlineEye,
-} from "react-icons/ai";
+import { LogOut, Plus, Edit3, ArrowLeft, Save } from "lucide-react";
 
-import {
-  Editor,
-  EditorState,
-  RichUtils,
-  convertFromRaw,
-  convertToRaw,
-  ContentState,
-  Modifier,
-} from "draft-js";
-import draftToHtml from "draftjs-to-html";
-import htmlToDraft from "html-to-draftjs";
-import "draft-js/dist/Draft.css";
+// Markdown & Conversion Dependencies
+import SimpleMDE from "react-simplemde-editor";
+import "easymde/dist/easymde.min.css";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import TurndownService from "turndown";
 
 const categories = [
   "Technology",
@@ -32,25 +21,33 @@ const categories = [
   "Lifestyle",
 ];
 
+const turndownService = new TurndownService();
+
 const EditBlog = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [author, setAuthor] = useState(null);
   const [loadingAuthor, setLoadingAuthor] = useState(true);
-
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(categories[0]);
   const [imageFile, setImageFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
   const [content, setContent] = useState("");
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
-  // Fetch author info
+  // Fixes the disappearing cursor issue
+  const editorOptions = useMemo(
+    () => ({
+      spellChecker: false,
+      status: false,
+    }),
+    []
+  );
+
   useEffect(() => {
     if (!token || !authorId) navigate("/authors/login");
 
@@ -59,7 +56,7 @@ const EditBlog = () => {
         const res = await fetch(`${AUTHOR_URL}/${authorId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error("Failed");
+        if (!res.ok) throw new Error("Auth Failed");
         const data = await res.json();
         setAuthor(data.author);
       } catch {
@@ -68,11 +65,9 @@ const EditBlog = () => {
         setLoadingAuthor(false);
       }
     };
-
     fetchAuthor();
   }, [token, authorId, navigate]);
 
-  // Fetch blog data
   useEffect(() => {
     const fetchBlog = async () => {
       try {
@@ -80,96 +75,44 @@ const EditBlog = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Failed");
-
         const data = await res.json();
-        const b = data.blog;
-
-        setTitle(b.title);
-        setCategory(b.category);
-        setImageURL(b.image_url || "");
-        setContent(b.content || "");
-
-        // Load HTML into Draft.js
-        if (b.content) {
-          const blocksFromHtml = htmlToDraft(b.content);
-          const { contentBlocks, entityMap } = blocksFromHtml;
-          const contentState = ContentState.createFromBlockArray(
-            contentBlocks,
-            entityMap
-          );
-          setEditorState(EditorState.createWithContent(contentState));
-        }
+        setTitle(data.blog.title);
+        setCategory(data.blog.category);
+        setImageURL(data.blog.image_url || "");
+        setContent(turndownService.turndown(data.blog.content || ""));
       } catch (err) {
-        console.error(err);
         navigate("/authors/dashboard");
       }
     };
     fetchBlog();
   }, [id, token, navigate]);
 
-  const handleEditorChange = (state) => {
-    setEditorState(state);
-    setContent(draftToHtml(convertToRaw(state.getCurrentContent())));
-  };
-
-  const toggleInlineStyle = (style) => {
-    setEditorState(RichUtils.toggleInlineStyle(editorState, style));
-  };
-
-  const toggleBlockType = (blockType) => {
-    setEditorState(RichUtils.toggleBlockType(editorState, blockType));
-  };
-
-  // Prompt for link
-  const promptForLink = () => {
-    const selection = editorState.getSelection();
-    if (!selection.isCollapsed()) {
-      const url = window.prompt("Enter the URL");
-      if (!url) return;
-      const contentState = editorState.getCurrentContent();
-      const contentStateWithEntity = contentState.createEntity(
-        "LINK",
-        "MUTABLE",
-        { url }
-      );
-      const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
-      const newEditorState = EditorState.set(editorState, {
-        currentContent: contentStateWithEntity,
-      });
-      setEditorState(
-        RichUtils.toggleLink(newEditorState, selection, entityKey)
-      );
-    } else {
-      alert("Please select text to add a link.");
-    }
-  };
-
-  // Upload image
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "razorblogs");
-
     const res = await fetch(
       "https://api.cloudinary.com/v1_1/dpiitjfzd/upload",
-      { method: "POST", body: formData }
+      {
+        method: "POST",
+        body: formData,
+      }
     );
-    if (!res.ok) throw new Error("Failed to upload image");
+    if (!res.ok) throw new Error("Upload failed");
     const data = await res.json();
     return data.secure_url;
   };
 
-  // Update blog
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       let finalImageURL = imageURL;
-      if (imageFile) finalImageURL = await uploadToCloudinary(imageFile);
+      if (imageFile) {
+        finalImageURL = await uploadToCloudinary(imageFile);
+      }
 
       const payload = { title, content, category, image_url: finalImageURL };
-
       const res = await fetch(`${BLOG_URL}/${id}`, {
         method: "PUT",
         headers: {
@@ -179,12 +122,10 @@ const EditBlog = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to update blog");
-
+      if (!res.ok) throw new Error("Update failed");
       navigate(`/blogs/${id}`);
     } catch (err) {
-      console.error(err);
-      alert("Failed to update blog");
+      alert("Failed to update blog. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -192,213 +133,133 @@ const EditBlog = () => {
 
   if (loadingAuthor)
     return (
-      <div className="text-white text-center py-10">Loading author...</div>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 font-mono">
+        LOADING_AUTH...
+      </div>
     );
 
   return (
-    <div className="min-h-screen bg-black/80 flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="bg-black/70 p-6 flex flex-col justify-between border-r border-gray-700 md:w-64 w-full">
-        <div>
-          <nav className="flex flex-col gap-4">
-            <Link
-              to="/blogs/new"
-              className="flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-semibold"
-            >
-              <AiOutlinePlus /> Create Blog
-            </Link>
-            <Link
-              to={`/authors/edit/${authorId}`}
-              className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
-            >
-              <AiOutlineEdit /> Edit Profile
-            </Link>
-            <Link
-              to={`/authors/${authorId}`}
-              className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700"
-            >
-              <AiOutlineEye /> View Profile
-            </Link>
-          </nav>
-        </div>
-
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row">
+      {/* Sidebar Navigation */}
+      <aside className="bg-zinc-900 p-8 border-r border-zinc-800 md:w-64 w-full flex flex-col justify-between">
+        <nav className="flex flex-col gap-6">
+          <Link
+            to="/blogs/new"
+            className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-emerald-500 transition"
+          >
+            <Plus size={16} /> New_Post
+          </Link>
+          <Link
+            to={`/authors/edit/${authorId}`}
+            className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-emerald-500 transition"
+          >
+            <Edit3 size={16} /> Edit_Profile
+          </Link>
+        </nav>
         <button
           onClick={() => {
-            localStorage.removeItem("authorToken");
-            localStorage.removeItem("authorId");
+            localStorage.clear();
             navigate("/authors/login");
           }}
-          className="flex items-center gap-2 text-gray-200 px-4 py-2 rounded-xl hover:bg-red-600 font-semibold"
+          className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-red-500 transition"
         >
-          <AiOutlineLogout /> Logout
+          <LogOut size={16} /> Logout
         </button>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 p-6 md:p-8">
-        <h1 className="text-4xl font-playfair text-yellow-400 font-bold mb-4">
-          Edit Blog
-        </h1>
-        <p className="text-gray-200 mb-6">
-          Update your blog content and preview changes in real time.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Form */}
-          <form
-            onSubmit={handleUpdate}
-            className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4"
+      <main className="flex-1 p-8 md:p-12">
+        <header className="flex justify-between items-center mb-10">
+          <h1 className="text-3xl font-black uppercase tracking-tighter">
+            Edit_Log
+          </h1>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition"
           >
-            <label className="flex flex-col text-gray-200">
-              Title *
+            <ArrowLeft size={12} /> Back
+          </button>
+        </header>
+
+        <form onSubmit={handleUpdate} className="grid lg:grid-cols-2 gap-12">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                Title
+              </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none transition"
                 required
               />
-            </label>
+            </div>
 
-            <label className="flex flex-col text-gray-200">
-              Category
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                Category
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none transition"
               >
                 {categories.map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>
-            </label>
+            </div>
 
-            <label className="flex flex-col text-gray-200">
-              Blog Image
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                Image
+              </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setImageFile(e.target.files[0])}
-                className="mt-1 p-2 rounded-xl bg-black/50 border border-gray-600 text-white"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none transition text-zinc-500"
               />
-            </label>
-
-            {/* Draft.js Toolbar */}
-            <div className="flex gap-2 mb-1 flex-wrap">
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("BOLD")}
-                className="px-2 py-1 bg-gray-700 text-white rounded font-bold"
-              >
-                B
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("ITALIC")}
-                className="px-2 py-1 bg-gray-700 text-white rounded italic"
-              >
-                I
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("UNDERLINE")}
-                className="px-2 py-1 bg-gray-700 text-white rounded underline"
-              >
-                U
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleInlineStyle("CODE")}
-                className="px-2 py-1 bg-gray-700 text-white rounded font-mono"
-              >
-                Code
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("unordered-list-item")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                UL
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("ordered-list-item")}
-                className="px-2 py-1 bg-gray-700 text-white rounded"
-              >
-                OL
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("header-one")}
-                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-lg"
-              >
-                H1
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("header-two")}
-                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-md"
-              >
-                H2
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleBlockType("header-three")}
-                className="px-2 py-1 bg-gray-700 text-white rounded font-bold text-sm"
-              >
-                H3
-              </button>
-              <button
-                type="button"
-                onClick={promptForLink}
-                className="px-2 py-1 bg-gray-700 text-white rounded underline text-blue-400"
-              >
-                Link
-              </button>
             </div>
 
-            <div className="border border-gray-600 rounded-xl bg-black/50 min-h-[200px] p-2 text-white">
-              <Editor
-                editorState={editorState}
-                onChange={handleEditorChange}
-                placeholder="Edit your blog..."
+            <div className="text-sm">
+              <SimpleMDE
+                value={content}
+                onChange={setContent}
+                options={editorOptions}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold hover:bg-yellow-500"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest py-4 rounded-xl transition flex items-center justify-center gap-2"
             >
-              {loading ? "Updating..." : "Update Blog"}
+              <Save size={14} /> {loading ? "SAVING..." : "Save_Changes"}
             </button>
-          </form>
+          </div>
 
-          {/* Live Preview */}
-          <div className="bg-black/60 p-6 rounded-xl border border-gray-700 flex flex-col gap-4">
-            {imageFile ? (
+          <div className="border border-zinc-800 rounded-3xl p-8 bg-zinc-900/50">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-6">
+              Live_Preview
+            </h3>
+            {imageFile || imageURL ? (
               <img
-                src={URL.createObjectURL(imageFile)}
-                className="w-full rounded-xl object-cover max-h-64"
-                alt="Preview"
-              />
-            ) : imageURL ? (
-              <img
-                src={imageURL}
-                className="w-full rounded-xl object-cover max-h-64"
+                src={imageFile ? URL.createObjectURL(imageFile) : imageURL}
+                className="w-full rounded-2xl object-cover aspect-video mb-6 border border-zinc-800"
                 alt="Preview"
               />
             ) : null}
-
-            <h3 className="text-white text-xl font-semibold">{title}</h3>
-            <span className="text-gray-400 text-sm">{category}</span>
-
-            <div
-              className="prose prose-invert max-w-none text-white"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
+            <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">
+              {title || "Untitled_Log"}
+            </h3>
+            <div className="prose prose-invert prose-zinc prose-sm mt-6">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
+            </div>
           </div>
-        </div>
+        </form>
       </main>
     </div>
   );
