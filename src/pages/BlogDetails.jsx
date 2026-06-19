@@ -45,7 +45,6 @@ export default function BlogDetail() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Related posts logic
   const relatedPosts = useMemo(() => {
     return allBlogs.filter((p) => p.blog.id !== id).slice(0, 3);
   }, [allBlogs, id]);
@@ -84,8 +83,9 @@ export default function BlogDetail() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="border-b border-zinc-800 bg-zinc-950/50 backdrop-blur sticky top-0 z-50">
-        <nav className="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
+      {/* Header aligned to content width */}
+      <header className="border-b border-zinc-800 bg-zinc-950 sticky top-0 z-50 max-w-5xl mx-auto px-6">
+        <nav className="py-5 flex justify-between items-center">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-emerald-500 transition"
@@ -102,7 +102,6 @@ export default function BlogDetail() {
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-16 grid lg:grid-cols-3 gap-16">
-        {/* Main Content */}
         <div className="lg:col-span-2">
           <span className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-4 block">
             {blog.blog.category || "General"}
@@ -115,7 +114,7 @@ export default function BlogDetail() {
             <img
               src={blog.blog.image_url}
               alt={blog.blog.title}
-              className="w-full aspect-video object-cover rounded-3xl mb-12 border border-zinc-800"
+              className="w-full h-auto rounded-3xl mb-12 border border-zinc-800"
             />
           )}
 
@@ -125,7 +124,6 @@ export default function BlogDetail() {
             </ReactMarkdown>
           </article>
 
-          {/* Comments Section */}
           <section className="mt-20 pt-12 border-t border-zinc-800">
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-8 flex items-center gap-2">
               <MessageSquare size={14} /> Comments ({comments.length})
@@ -166,9 +164,7 @@ export default function BlogDetail() {
           </section>
         </div>
 
-        {/* Sidebar */}
         <aside className="space-y-12">
-          {/* Related Stories */}
           <div className="space-y-6">
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               Related Stories
@@ -193,7 +189,6 @@ export default function BlogDetail() {
             ))}
           </div>
 
-          {/* Join CTA */}
           <div className="p-8 bg-zinc-900 rounded-3xl border border-zinc-800">
             <h3 className="text-xl font-black uppercase tracking-tighter mb-4">
               Join the Journal.
