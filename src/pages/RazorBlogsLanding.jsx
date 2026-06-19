@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { BLOG_URL } from "../api";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 const CACHE_KEY = "alcodist_blog_cache";
+const BATCH_LIMIT = 10; // Matches your Go backend's pagination size
 
 const Skeleton = () => (
   <div className="animate-pulse w-full bg-zinc-900 rounded-2xl h-64 border border-zinc-800" />
@@ -50,17 +51,51 @@ export default function AlcodistBlogs() {
   );
   const [loading, setLoading] = useState(posts.length === 0);
   const [visibleCount, setVisibleCount] = useState(4);
+  const [hasMoreServer, setHasMoreServer] = useState(true); // Tracks if DB has more records
 
+  // Initial Fetch: Load Page 1 from Go backend (?limit=10&skip=0)
   useEffect(() => {
-    fetch(BLOG_URL)
+    fetch(`${BLOG_URL}?limit=${BATCH_LIMIT}&skip=0`)
       .then((res) => res.json())
       .then((data) => {
         setPosts(data);
         localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+
+        // If backend returns less than our limit, we've exhausted the database
+        if (data.length < BATCH_LIMIT) {
+          setHasMoreServer(false);
+        }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  // Handle Paginated "View More" operations
+  const handleViewMore = () => {
+    const nextVisible = visibleCount + 4;
+    setVisibleCount(nextVisible);
+
+    // If the UI needs more records than currently stored in state,
+    // AND the server still has data left, fetch the next batch!
+    if (nextVisible >= list.length && hasMoreServer) {
+      const nextSkip = posts.length; // Offset equals current total items loaded
+
+      fetch(`${BLOG_URL}?limit=${BATCH_LIMIT}&skip=${nextSkip}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.length < BATCH_LIMIT) {
+            setHasMoreServer(false);
+          }
+
+          setPosts((prev) => {
+            const updated = [...prev, ...data];
+            localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+            return updated;
+          });
+        })
+        .catch((err) => console.error(err));
+    }
+  };
 
   const { featured, list } = useMemo(() => {
     if (!posts.length) return { featured: null, list: [] };
@@ -76,7 +111,6 @@ export default function AlcodistBlogs() {
     return { featured: latest, list: popular };
   }, [posts]);
 
-  // Clean Markdown for the synopsis
   const getSynopsis = (content) => {
     if (!content) return "";
     return content.replace(/[*#_`]/g, "").substring(0, 150) + "...";
@@ -84,7 +118,6 @@ export default function AlcodistBlogs() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
-      {/* Updated Nav: Removed redundant logo text */}
       <nav className="max-w-5xl mx-auto px-6 py-6 flex gap-6 justify-end items-center border-b border-zinc-900">
         <Link
           to="/authors/register"
@@ -92,7 +125,6 @@ export default function AlcodistBlogs() {
         >
           Register
         </Link>
-
         <Link
           to="/authors/login"
           className="text-[10px] font-bold uppercase text-zinc-500 hover:text-emerald-500"
@@ -121,7 +153,6 @@ export default function AlcodistBlogs() {
               to={`/blogs/${featured.blog.id}`}
               className="block bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
             >
-              {/* Flexible Image Container: No cropping */}
               <div className="w-full bg-zinc-950 flex items-center justify-center p-2">
                 <img
                   src={featured.blog.image_url}
@@ -148,6 +179,7 @@ export default function AlcodistBlogs() {
           ) : null}
         </section>
 
+        {/* Popular & Latest Grid */}
         <section>
           <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-600 mb-8">
             Popular & Latest
@@ -160,10 +192,11 @@ export default function AlcodistBlogs() {
                   .map((post) => <BlogCard key={post.blog.id} post={post} />)}
           </div>
 
-          {visibleCount < list.length && (
+          {/* Render button if local UI has hidden cards OR if server has more batches */}
+          {(visibleCount < list.length || hasMoreServer) && (
             <button
-              onClick={() => setVisibleCount((p) => p + 4)}
-              className="mt-12 flex items-center gap-2 text-emerald-500 text-xs font-bold uppercase tracking-widest"
+              onClick={handleViewMore}
+              className="mt-12 flex items-center gap-2 text-emerald-500 text-xs font-bold uppercase tracking-widest transition-colors hover:text-emerald-400"
             >
               View More <ChevronDown size={14} />
             </button>
