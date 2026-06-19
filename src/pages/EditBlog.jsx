@@ -3,12 +3,11 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { BLOG_URL, AUTHOR_URL } from "../api";
 import { LogOut, Plus, Edit3, ArrowLeft, Save } from "lucide-react";
 
-// Markdown & Conversion Dependencies
+// Markdown Dependencies
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import TurndownService from "turndown";
 
 const categories = [
   "Technology",
@@ -20,8 +19,6 @@ const categories = [
   "Sports",
   "Lifestyle",
 ];
-
-const turndownService = new TurndownService();
 
 const EditBlog = () => {
   const { id } = useParams();
@@ -39,7 +36,6 @@ const EditBlog = () => {
   const token = localStorage.getItem("authorToken");
   const authorId = localStorage.getItem("authorId");
 
-  // Fixes the disappearing cursor issue
   const editorOptions = useMemo(
     () => ({
       spellChecker: false,
@@ -76,10 +72,12 @@ const EditBlog = () => {
         });
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
+
         setTitle(data.blog.title);
         setCategory(data.blog.category);
         setImageURL(data.blog.image_url || "");
-        setContent(turndownService.turndown(data.blog.content || ""));
+        // Directly set content - No conversion needed now!
+        setContent(data.blog.content || "");
       } catch (err) {
         navigate("/authors/dashboard");
       }
@@ -140,7 +138,6 @@ const EditBlog = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row">
-      {/* Sidebar Navigation */}
       <aside className="bg-zinc-900 p-8 border-r border-zinc-800 md:w-64 w-full flex flex-col justify-between">
         <nav className="flex flex-col gap-6">
           <Link
