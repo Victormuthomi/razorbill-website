@@ -5,7 +5,7 @@ This repository is no longer actively maintained. The Alcodist Hub project has b
 ## 🚀 Where to find us
 The active codebase, documentation, and continued development now live here:
 
-**[🔗 CLICK HERE TO ACCESS THE NEW REPOSITORY]([https://github.com/Victormuthomi/alcodist-hub])**
+**[🔗 CLICK HERE TO ACCESS THE NEW REPOSITORY](https://github.com/Victormuthomi/alcodist-hub)**
 
 ---
 
